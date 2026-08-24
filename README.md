@@ -2,6 +2,7 @@
 
 # Calcul Flash
 
+**60 secondes. Combien tu en as ?**  
 **60 seconds. How many can you get right?**
 
 [![Live](https://img.shields.io/badge/live-fschmutz.github.io-FF3E8A?style=for-the-badge)](https://fschmutz.github.io/calcul-flash/)

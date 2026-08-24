@@ -1,11 +1,11 @@
 **Calcul Flash**
 
-- [[Home]]
+[▶ Jouer / Play](https://fschmutz.github.io/calcul-flash/)
+
+- [[Home]] — FR / EN
 - [[How it works]]
 - [[Modes]]
 - [[Privacy]]
 - [[Troubleshooting]]
 - [[FAQ]]
 - [[Architecture]]
-
-[Live app](https://fschmutz.github.io/calcul-flash/)
