@@ -1,6 +1,8 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/fschmutz/calcul-flash/main/assets/logo.png" alt="Calcul Flash" width="280">
+<img src="https://raw.githubusercontent.com/fschmutz/calcul-flash/main/assets/hero.png" alt="Calcul Flash — écran d'accueil" width="680">
+
+<img src="https://raw.githubusercontent.com/fschmutz/calcul-flash/main/assets/play.png" alt="Manche en cours" width="680">
 
 # CALCUL **FLASH**
 

@@ -10,7 +10,11 @@
 [![Privacy](https://img.shields.io/badge/privacy-nothing_uploaded-150C2E?style=for-the-badge)](https://github.com/fschmutz/calcul-flash/wiki/Privacy)
 [![Wiki](https://img.shields.io/badge/wiki-how_it_works-3EE7B8?style=for-the-badge)](https://github.com/fschmutz/calcul-flash/wiki)
 
-<img src="assets/logo.png" alt="Calcul Flash mascot" width="320">
+<img src="assets/hero.png" alt="Calcul Flash — prénom, âge, C'EST PARTI" width="920">
+
+<img src="assets/setup.png" alt="Choix de l'entraînement, difficulté, durée" width="920">
+
+<img src="assets/play.png" alt="Manche en cours : 5 × 7, pavé, chrono" width="920">
 
 **[Ouvrir le jeu / Open the live app →](https://fschmutz.github.io/calcul-flash/)**
 · [wiki](https://github.com/fschmutz/calcul-flash/wiki)
