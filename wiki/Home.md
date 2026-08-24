@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/fschmutz/calcul-flash/main/assets/logo.svg" alt="Calcul Flash" width="280">
+<img src="https://raw.githubusercontent.com/fschmutz/calcul-flash/main/assets/logo.png" alt="Calcul Flash" width="280">
 
 # CALCUL **FLASH**
 
