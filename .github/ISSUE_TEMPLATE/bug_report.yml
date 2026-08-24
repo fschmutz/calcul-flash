@@ -1,0 +1,28 @@
+name: Bug report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options: [Live GitHub Pages, Local python3 -m http.server, Other]
+    validations: {required: true}
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Footer version (e.g. 2026.08.24.1) or commit SHA
+    validations: {required: true}
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: Chrome 128, Safari iOS 18, Firefox…
+    validations: {required: true}
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Steps, expected vs actual. Note if you already tapped Reload latest version.
+    validations: {required: true}

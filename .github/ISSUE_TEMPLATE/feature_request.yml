@@ -1,0 +1,15 @@
+name: Feature request
+description: A change that would help
+labels: [enhancement]
+body:
+  - type: textarea
+    id: want
+    attributes:
+      label: What do you want
+      description: Keep play in the tab. No backend, no analytics, no leaderboard server.
+    validations: {required: true}
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What this unblocks for a player or a parent.

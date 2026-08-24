@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation (Wiki)
+    url: https://github.com/fschmutz/calcul-flash/wiki
+    about: How it works, modes, privacy, troubleshooting.
+  - name: Live app
+    url: https://fschmutz.github.io/calcul-flash/
+    about: Open the GitHub Pages app.
