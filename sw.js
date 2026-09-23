@@ -1,4 +1,4 @@
-const CACHE = 'flash-v1';
+const CACHE = 'flash-v2';
 const SHELL = [
   './',
   './index.html',
