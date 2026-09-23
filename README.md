@@ -40,16 +40,19 @@ Most kids' mental-math pages phone home, pull Google Fonts, and never let you re
 | `tables` | Tables × jusqu'à 12, et divisions | Times tables to 12, and division |
 | `addsub` | + et − avec retenues | Lightning +/− with regrouping |
 | `comp` | Compléments à 100 et à 1000 | Make 100 and 1000 |
-| `deci` | ×10, ×100, virgules, chiffre des / nombre de, nombre mystère, comparer, fractions décimales, arrondi | ×10, ×100, decimals, digit vs count of a place, build a number from its places, compare, decimal fractions, rounding |
+| `deci` | ×10, ×0,1, chiffre des / nombre de, nombre mystère, comparer, fractions décimales, arrondi au dixième, euros, écarts, milieux, `0,75 = ?/4` | ×10, ×0,1, digit vs count of a place, build a number from its places, compare, decimal fractions, rounding to the tenth, euros, gaps, midpoints, `0,75 = ?/4` |
 | `frac` | 3/4 de 40, 25 % de 60 | 3/4 of 40, 25% of 60 |
-| `mes` | m, cm, kg, L, durées | m, cm, kg, L, time |
+| `mes` | m, kg, L, euros et centimes, durées et heures, aires et périmètres | m, kg, L, euros and cents, time and clock gaps, area and perimeter |
 | `malin` | × 5, × 9, × 11, × 25, carrés, doubles | × 5, × 9, × 11, × 25, squares, doubles |
 | `mix` | Les 7 familles, sans prévenir | All 7 families, no warning |
 
 Age-calibrated 8–14. Easy / Medium / Expert. 45 s, 60 s, or 2 min. Web Audio beeps. Works offline after the first load.
 
-`deci` covers the whole French 6ème decimal place-value programme — *chiffre des* vs *nombre de*, writing a number
-from its places, comparing decimals of different lengths, decimal fractions, *arrondi / troncature à l'unité* —
+`deci` covers the whole French 6ème decimal programme — *chiffre des* vs *nombre de*, writing a number from its
+places, comparing decimals of different lengths, decimal fractions, *arrondi / troncature* à l'unité, au dixième
+et au centième — then puts it to work: euros ↔ centimes, × and ÷ by 0,1 / 0,01 / 0,001, the gap between two
+ragged decimals, midpoints, and `0,75 = ? / 4`. `mes` runs four capped buckets: units, money, time (durations,
+clock gaps, decimal hours) and geometry (square, rectangle, triangle). Every answer is one number on the pad,
 graded across ages 8–14 and levels 1–6. Details: [wiki/Modes](https://github.com/fschmutz/calcul-flash/wiki/Modes).
 
 ## Privacy
