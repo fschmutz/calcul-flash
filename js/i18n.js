@@ -58,9 +58,9 @@ export const STR = {
       tables: "jusqu'à 12, et divisions",
       addsub: '+ et − avec retenues',
       comp: 'à 100 et à 1000',
-      deci: '×10, ×100, rangs et virgules',
+      deci: '×10, ×0,1, rangs, virgules, euros',
       frac: '3/4 de 40, 25 % de 60',
-      mes: 'm, cm, kg, L, durées',
+      mes: 'm, kg, L, €, durées, aires',
       malin: '× 5, × 9, × 11, × 25, carrés, doubles',
       mix: 'les 7 familles, sans prévenir'
     },
@@ -157,9 +157,9 @@ export const STR = {
       tables: 'up to 12, and division',
       addsub: '+ and − with regrouping',
       comp: 'make 100 and 1000',
-      deci: '×10, ×100, decimal places',
+      deci: '×10, ×0,1, places, commas, euros',
       frac: '3/4 of 40, 25% of 60',
-      mes: 'm, cm, kg, L, time',
+      mes: 'm, kg, L, €, time, area',
       malin: '× 5, × 9, × 11, × 25, squares, doubles',
       mix: 'all 7 families, no warning'
     },
