@@ -1,7 +1,9 @@
 /** Question generators. Browser + Node (node --test). No DOM. */
 
+/** French writing of a number. Rounds off float noise, keeps up to 4 useful decimals. */
 export function fr(n) {
-  return (Math.round(n * 100) / 100).toString().replace('.', ',');
+  const r = Math.round(n * 1e6) / 1e6;
+  return (r === 0 ? 0 : r).toString().replace('.', ',');
 }
 
 export function rint(a, b, rnd = Math.random) {
@@ -76,7 +78,23 @@ const COPY = {
     comp500: 'Complément à 500',
     comp1000: 'Complément à 1000',
     comp1: 'Complément à 1',
-    compDec: 'Complément décimal'
+    compDec: 'Complément décimal',
+    digitOf: (n, place) => 'Dans ' + n + ', le chiffre des ' + place + ' ?',
+    countOf: (n, unit) => 'Dans ' + n + ', le nombre ' + unit + ' ?',
+    assemble: (clues) => 'Écris : ' + clues,
+    largest: (a, b) => 'Le plus grand : ' + a + ' ou ' + b + ' ?',
+    fracNum: (dec, den) => dec + ' = ? / ' + den,
+    roundDown: (n) => "Arrondi à l'unité par défaut de " + n,
+    roundUp: (n) => "Arrondi à l'unité par excès de " + n,
+    truncate: (n) => "Troncature à l'unité de " + n,
+    digitTag: 'Chiffre des rangs',
+    countTag: 'Nombre de …',
+    assembleTag: 'Nombre mystère',
+    largestTag: 'Comparer des décimaux',
+    fracNumTag: 'Fraction décimale',
+    roundTag: "Arrondi à l'unité",
+    truncTag: "Troncature à l'unité",
+    alignTag: 'Virgules à aligner'
   },
   en: {
     half: (n) => 'Half of ' + n,
@@ -128,7 +146,23 @@ const COPY = {
     comp500: 'Make 500',
     comp1000: 'Make 1000',
     comp1: 'Make 1',
-    compDec: 'Decimal complement'
+    compDec: 'Decimal complement',
+    digitOf: (n, place) => 'In ' + n + ', the ' + place + ' digit?',
+    countOf: (n, unit) => 'In ' + n + ', how many ' + unit + '?',
+    assemble: (clues) => 'Write: ' + clues,
+    largest: (a, b) => 'Which is larger: ' + a + ' or ' + b + '?',
+    fracNum: (dec, den) => dec + ' = ? / ' + den,
+    roundDown: (n) => 'Round ' + n + ' down to the unit',
+    roundUp: (n) => 'Round ' + n + ' up to the unit',
+    truncate: (n) => 'Truncate ' + n + ' to the unit',
+    digitTag: 'Digit in a place',
+    countTag: 'How many units',
+    assembleTag: 'Mystery number',
+    largestTag: 'Compare decimals',
+    fracNumTag: 'Decimal fraction',
+    roundTag: 'Round to the unit',
+    truncTag: 'Truncate to the unit',
+    alignTag: 'Line up the commas'
   }
 };
 
@@ -142,6 +176,262 @@ export function complementQuestion(n, target, tag, rnd = Math.random) {
   return rnd() < 0.35
     ? { t: '? + ' + fr(n) + ' = ' + fr(target), a, tag }
     : { t: fr(n) + ' + ? = ' + fr(target), a, tag };
+}
+
+/* ---------- decimal place value (French 6e) ---------- */
+
+/** Named places, most significant first. rank = power of ten. */
+const PLACES = [
+  { rank: 3, fr: 'milliers', fr1: 'millier', en: 'thousands', en1: 'thousand' },
+  { rank: 2, fr: 'centaines', fr1: 'centaine', en: 'hundreds', en1: 'hundred' },
+  { rank: 1, fr: 'dizaines', fr1: 'dizaine', en: 'tens', en1: 'ten' },
+  { rank: 0, fr: 'unités', fr1: 'unité', en: 'units', en1: 'unit' },
+  { rank: -1, fr: 'dixièmes', fr1: 'dixième', en: 'tenths', en1: 'tenth' },
+  { rank: -2, fr: 'centièmes', fr1: 'centième', en: 'hundredths', en1: 'hundredth' },
+  { rank: -3, fr: 'millièmes', fr1: 'millième', en: 'thousandths', en1: 'thousandth' },
+  { rank: -4, fr: 'dix-millièmes', fr1: 'dix-millième', en: 'ten-thousandths', en1: 'ten-thousandth' }
+];
+const PLACE_BY_RANK = {};
+PLACES.forEach((p) => { PLACE_BY_RANK[p.rank] = p; });
+
+/** Plural by default; French keeps the singular after 0 and 1. */
+function placeWord(rank, lang, count) {
+  const p = PLACE_BY_RANK[rank];
+  if (lang === 'en') return count === 1 ? p.en1 : p.en;
+  return count != null && count <= 1 ? p.fr1 : p.fr;
+}
+
+function frDe(word) {
+  return /^[aeiouéèêh]/.test(word) ? "d'" + word : 'de ' + word;
+}
+
+/** A number kept as digits so prompts, answers and place lookups never drift. */
+function digitsToNumber(int, dec) {
+  const s = int.join('') + (dec.length ? ',' + dec.join('') : '');
+  return { s, v: parseFloat(s.replace(',', '.')), int, dec };
+}
+
+function intDigits(len, rnd) {
+  const d = [rint(1, 9, rnd)];
+  for (let i = 1; i < len; i++) d.push(rint(0, 9, rnd));
+  return d;
+}
+
+/** Last digit is never 0: the written form stays canonical, so fr(v) === s. */
+function decDigits(len, rnd) {
+  const d = [];
+  for (let i = 0; i < len; i++) d.push(rint(0, 9, rnd));
+  if (len) d[len - 1] = rint(1, 9, rnd);
+  return d;
+}
+
+function randomNumber(intLen, decLen, rnd) {
+  return digitsToNumber(intDigits(intLen, rnd), decDigits(decLen, rnd));
+}
+
+function digitAt(n, rank) {
+  return rank >= 0 ? n.int[n.int.length - 1 - rank] : n.dec[-rank - 1];
+}
+
+/** How many whole units of that rank the number holds (89124,756 → 89 milliers). */
+function countAt(n, rank) {
+  return parseInt(n.int.concat(n.dec).slice(0, n.int.length - rank).join(''), 10);
+}
+
+/** Ranks that have a name and a digit in this number. */
+function namedRanks(n) {
+  return PLACES
+    .map((p) => p.rank)
+    .filter((r) => (r >= 0 ? r <= n.int.length - 1 : -r <= n.dec.length));
+}
+
+function shuffle(arr, rnd) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  return arr;
+}
+
+function weighted(pairs, rnd) {
+  let total = 0;
+  for (const p of pairs) total += p[1];
+  let x = rnd() * total;
+  for (const p of pairs) {
+    x -= p[1];
+    if (x < 0) return p[0];
+  }
+  return pairs[pairs.length - 1][0];
+}
+
+/**
+ * 1 = starter (age ≤ 9 or level 1), 2 = 6e core, 3 = 5e and above.
+ * Difficulty nudges one step, never above the starter tier for the youngest.
+ */
+function pvTier(level, ctx) {
+  let t = ctx.age <= 9 || level <= 1 ? 1 : ctx.age >= 12 || level >= 4 ? 3 : 2;
+  if (ctx.diff === 'expert' && ctx.age >= 10 && level >= 2) t = Math.min(3, t + 1);
+  if (ctx.diff === 'facile') t = Math.max(1, t - 1);
+  return t;
+}
+
+/** Share of the deci mode spent on place value; the rest stays classic ×10 / ÷10. */
+function pvShare(level, ctx) {
+  if (ctx.age <= 9 || level <= 1) return 0.20;
+  return ctx.age >= 12 || level >= 4 ? 0.45 : 0.38;
+}
+
+/** A — the digit written at a named place. */
+function gPvDigit(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  let n, ranks;
+  if (tier === 1) {
+    n = randomNumber(rint(2, 3, rnd), 0, rnd);
+    ranks = [0, 1];
+  } else if (tier === 2) {
+    n = randomNumber(rint(2, 4, rnd), rint(1, 3, rnd), rnd);
+    ranks = namedRanks(n);
+  } else {
+    n = randomNumber(rint(3, 6, rnd), rint(2, 4, rnd), rnd);
+    ranks = namedRanks(n);
+  }
+  const rank = pick(ranks, rnd);
+  return {
+    t: C.digitOf(n.s, placeWord(rank, ctx.lang)),
+    a: digitAt(n, rank),
+    tag: C.digitTag
+  };
+}
+
+/** B — how many whole units of that rank. Never the same question as A. */
+function gPvCount(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  let n, allow;
+  if (tier === 1) {
+    n = randomNumber(rint(2, 3, rnd), rnd() < 0.5 ? 1 : 0, rnd);
+    allow = [0, 1, 2];
+  } else if (tier === 2) {
+    n = randomNumber(rint(2, 4, rnd), rint(1, 2, rnd), rnd);
+    allow = [0, 1, 2, 3, -1];
+  } else {
+    n = randomNumber(rint(3, 5, rnd), rint(1, 3, rnd), rnd);
+    allow = [0, 1, 2, 3, -1, -2];
+  }
+  const ranks = namedRanks(n)
+    .filter((r) => allow.indexOf(r) !== -1 && String(countAt(n, r)).length <= 6);
+  /** Two digits at least, so the count is never just the digit sitting there. */
+  const telling = ranks.filter((r) => countAt(n, r) >= 10);
+  const rank = pick(telling.length ? telling : ranks, rnd);
+  const word = placeWord(rank, ctx.lang);
+  return {
+    t: C.countOf(n.s, ctx.lang === 'en' ? word : frDe(word)),
+    a: countAt(n, rank),
+    tag: C.countTag
+  };
+}
+
+/** C — write the number described by its places (nombre mystère). */
+function gPvAssemble(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const k = tier === 1 ? 3 : tier === 2 ? rint(3, 4, rnd) : rint(4, 5, rnd);
+  const maxDec = tier === 1 ? 2 : tier === 2 ? 3 : 4;
+  const lows = [];
+  for (let b = -1; b >= -maxDec; b--) if (b + k - 1 >= 0) lows.push(b);
+  const bottom = pick(lows, rnd);
+  const top = bottom + k - 1;
+
+  const digits = {};
+  const ranks = [];
+  for (let r = top; r >= bottom; r--) { digits[r] = rint(0, 9, rnd); ranks.push(r); }
+  digits[top] = rint(1, 9, rnd);
+  digits[bottom] = rint(1, 9, rnd);
+
+  const gap = tier === 1 ? 0 : tier === 2 ? 0.25 : 0.35;
+  if (ranks.length > 3 && rnd() < gap) {
+    const idx = rint(1, ranks.length - 2, rnd);
+    digits[ranks[idx]] = 0;
+    ranks.splice(idx, 1);
+  }
+
+  const int = [], dec = [];
+  for (let r = top; r >= 0; r--) int.push(digits[r]);
+  for (let r = -1; r >= bottom; r--) dec.push(digits[r]);
+  const n = digitsToNumber(int, dec);
+
+  const order = tier === 1 ? ranks : rnd() < (tier === 2 ? 0.2 : 0.35) ? shuffle(ranks.slice(), rnd) : ranks;
+  const clues = order
+    .map((r) => digits[r] + ' ' + placeWord(r, ctx.lang, digits[r]))
+    .join(', ');
+  return { t: C.assemble(clues), a: n.v, tag: C.assembleTag };
+}
+
+/** D — compare two decimals, often of different lengths. */
+function gPvCompare(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const iLen = tier === 1 ? 1 : rint(1, 2, rnd);
+  const maxDec = Math.min(tier === 1 ? 2 : tier === 2 ? 3 : 4, 5 - iLen);
+  let la = rint(1, maxDec, rnd);
+  let lb = rint(1, maxDec, rnd);
+  if (tier > 1 && la === lb && rnd() < 0.7) lb = la === maxDec ? Math.max(1, la - 1) : la + 1;
+  const sameInt = rnd() < 0.7;
+
+  let a, b, guard = 0;
+  do {
+    const ia = intDigits(iLen, rnd);
+    const ib = sameInt ? ia.slice() : intDigits(iLen, rnd);
+    a = digitsToNumber(ia, decDigits(la, rnd));
+    b = digitsToNumber(ib, decDigits(lb, rnd));
+    guard++;
+  } while (a.v === b.v && guard < 12);
+  if (a.v === b.v) {
+    const dec = b.dec.slice();
+    dec[dec.length - 1] = (dec[dec.length - 1] % 9) + 1;
+    b = digitsToNumber(b.int, dec);
+  }
+  return { t: C.largest(a.s, b.s), a: Math.max(a.v, b.v), tag: C.largestTag };
+}
+
+/** E — the numerator of the decimal fraction: 7,892 = ? / 1000. */
+function gPvFracNum(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const k = tier === 1 ? pick([1, 2], rnd) : tier === 2 ? pick([2, 3], rnd) : pick([2, 3, 4], rnd);
+  const zeroInt = tier > 1 && rnd() < 0.3;
+  const int = zeroInt ? [0] : intDigits(k >= 4 ? 1 : rint(1, 2, rnd), rnd);
+  const dec = decDigits(k, rnd);
+  if (zeroInt) dec[0] = rint(1, 9, rnd);
+  const n = digitsToNumber(int, dec);
+  return {
+    t: C.fracNum(n.s, Math.pow(10, k)),
+    a: parseInt(int.join('') + dec.join(''), 10),
+    tag: C.fracNumTag
+  };
+}
+
+/** F — arrondi par défaut / par excès / troncature à l'unité. Numbers stay positive. */
+function gPvRound(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const n = randomNumber(rint(1, tier === 1 ? 2 : 3, rnd), rint(1, tier === 3 ? 3 : 2, rnd), rnd);
+  const floor = parseInt(n.int.join(''), 10);
+  if (tier === 3 && rnd() < 0.35) return { t: C.roundUp(n.s), a: floor + 1, tag: C.roundTag };
+  if (rnd() < 0.35) return { t: C.truncate(n.s), a: floor, tag: C.truncTag };
+  return { t: C.roundDown(n.s), a: floor, tag: C.roundTag };
+}
+
+const PV_WEIGHTS = {
+  1: [[gPvDigit, 40], [gPvCount, 15], [gPvAssemble, 20], [gPvCompare, 15], [gPvFracNum, 10]],
+  2: [[gPvDigit, 26], [gPvCount, 18], [gPvAssemble, 18], [gPvCompare, 16], [gPvFracNum, 12], [gPvRound, 10]],
+  3: [[gPvDigit, 20], [gPvCount, 20], [gPvAssemble, 18], [gPvCompare, 16], [gPvFracNum, 14], [gPvRound, 12]]
+};
+
+function gPlaceValue(level, ctx) {
+  const tier = pvTier(level, ctx);
+  return weighted(PV_WEIGHTS[tier], ctx.rnd)(tier, ctx);
 }
 
 function gTables(level, ctx) {
@@ -196,8 +486,14 @@ function gComp(level, ctx) {
     if (r < 0.8) return complementQuestion(rint(3, 47, rnd), 50, C.comp50, rnd);
     return complementQuestion(rint(21, 199, rnd), 200, C.comp200, rnd);
   }
-  if (level >= 6 && ctx.age >= 11 && r < 0.30) {
-    return complementQuestion(rint(5, 95, rnd) / 100, 1, C.comp1, rnd);
+  if (ctx.age >= 10 && level >= 4 && r < 0.28) {
+    const hundredths = level >= 5 || ctx.diff === 'expert';
+    return complementQuestion(
+      hundredths ? rint(5, 95, rnd) / 100 : rint(1, 9, rnd) / 10,
+      1,
+      C.comp1,
+      rnd
+    );
   }
   if (r < 0.45) return complementQuestion(rint(105, 985, rnd), 1000, C.comp1000, rnd);
   if (r < 0.70) return complementQuestion(rint(12, 97, rnd), 100, C.comp100, rnd);
@@ -314,6 +610,11 @@ function gMalin(level, ctx) {
 }
 
 function gDeci(level, ctx) {
+  if (ctx.rnd() < pvShare(level, ctx)) return gPlaceValue(level, ctx);
+  return gClassicDeci(level, ctx);
+}
+
+function gClassicDeci(level, ctx) {
   const rnd = ctx.rnd;
   const C = L(ctx.lang);
   if (ctx.age <= 9) {
@@ -338,13 +639,22 @@ function gDeci(level, ctx) {
     const n = rint(2, 9, rnd) / 10, m = rint(2, 9, rnd) / 10;
     return { t: fr(n) + ' + ' + fr(m), a: Math.round((n + m) * 10) / 10, tag: C.decSum };
   }
-  if (r < 0.74) {
+  if (r < 0.70) {
     const n = rint(11, 89, rnd) / 10, m = rint(2, 6, rnd);
     return { t: fr(n) + ' × ' + m, a: Math.round(n * m * 10) / 10, tag: C.decMul };
   }
-  if (r < 0.88) {
+  if (r < 0.80) {
     const n = rint(105, 995, rnd) / 10;
     return { t: fr(n) + ' ÷ 10', a: Math.round(n * 10) / 100, tag: C.div10 };
+  }
+  if (r < 0.90) {
+    const la = rint(1, 2, rnd);
+    const a = digitsToNumber(intDigits(1, rnd), decDigits(la, rnd));
+    const b = digitsToNumber([0], decDigits(Math.min(3, la + rint(1, 2, rnd)), rnd));
+    return { t: a.s + ' + ' + b.s, a: Math.round((a.v + b.v) * 1e6) / 1e6, tag: C.alignTag };
+  }
+  if (r < 0.96) {
+    return complementQuestion(rint(5, 95, rnd) / 100, 1, C.comp1, rnd);
   }
   const n = rint(3, 49, rnd) / 2;
   return { t: C.half(fr(n * 2)), a: n, tag: C.halfTag };
