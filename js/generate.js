@@ -39,6 +39,10 @@ const COPY = {
     double: (n) => 'Le double de ' + n,
     area: (c) => "Aire d'un carré de côté " + c + ' cm',
     peri: (c) => "Périmètre d'un carré de côté " + c + ' cm',
+    rectArea: (l, w) => "Aire d'un rectangle de " + l + ' cm sur ' + w + ' cm',
+    rectPeri: (l, w) => "Périmètre d'un rectangle de " + l + ' cm sur ' + w + ' cm',
+    triPeri: (a, b, c) => "Périmètre d'un triangle de côtés " + a + ', ' + b + ' et ' + c + ' cm',
+    rightArea: (a, b) => "Aire d'un triangle rectangle de " + a + ' cm sur ' + b + ' cm',
     tableOf: (a) => 'Table de ' + a,
     division: 'Division',
     addition: 'Addition',
@@ -46,6 +50,7 @@ const COPY = {
     relatives: 'Nombres relatifs',
     mul10: 'Multiplier par 10',
     mulBy: (m) => 'Multiplier par ' + m,
+    divBy: (m) => 'Diviser par ' + m,
     tenths: 'Somme de dixièmes',
     decSum: 'Somme de décimaux',
     decMul: 'Décimal × entier',
@@ -84,17 +89,31 @@ const COPY = {
     assemble: (clues) => 'Écris : ' + clues,
     largest: (a, b) => 'Le plus grand : ' + a + ' ou ' + b + ' ?',
     fracNum: (dec, den) => dec + ' = ? / ' + den,
-    roundDown: (n) => "Arrondi à l'unité par défaut de " + n,
-    roundUp: (n) => "Arrondi à l'unité par excès de " + n,
-    truncate: (n) => "Troncature à l'unité de " + n,
+    roundDown: (n, place) => 'Arrondi ' + place + ' par défaut de ' + n,
+    roundUp: (n, place) => 'Arrondi ' + place + ' par excès de ' + n,
+    truncate: (n, place) => 'Troncature ' + place + ' de ' + n,
+    roundPlace: ["à l'unité", 'au dixième', 'au centième'],
+    mid: (a, b) => 'Le milieu de ' + a + ' et ' + b,
+    euroToCent: (e) => e + ' € = ? centimes',
+    centToEuro: (c) => c + ' centimes = ? €',
+    clockGap: (a, b) => 'De ' + a + ' à ' + b + ' = ? min',
+    clock: (h, m) => (m === 0 ? h + ' h' : h + ' h ' + (m < 10 ? '0' + m : m)),
     digitTag: 'Chiffre des rangs',
     countTag: 'Nombre de …',
     assembleTag: 'Nombre mystère',
     largestTag: 'Comparer des décimaux',
     fracNumTag: 'Fraction décimale',
-    roundTag: "Arrondi à l'unité",
-    truncTag: "Troncature à l'unité",
-    alignTag: 'Virgules à aligner'
+    roundTag: (place) => 'Arrondi ' + place,
+    truncTag: (place) => 'Troncature ' + place,
+    alignTag: 'Virgules à aligner',
+    gapTag: 'Écart entre décimaux',
+    midTag: 'Milieu de deux décimaux',
+    bridgeTag: 'Décimal → fraction',
+    moneyTag: 'Euros et centimes',
+    minSecTag: 'Minutes et secondes',
+    hourTag: 'Heures et minutes',
+    addDurTag: 'Additionner des durées',
+    clockGapTag: 'Entre deux heures'
   },
   en: {
     half: (n) => 'Half of ' + n,
@@ -107,6 +126,10 @@ const COPY = {
     double: (n) => 'Double ' + n,
     area: (c) => 'Area of a square of side ' + c + ' cm',
     peri: (c) => 'Perimeter of a square of side ' + c + ' cm',
+    rectArea: (l, w) => 'Area of a ' + l + ' cm by ' + w + ' cm rectangle',
+    rectPeri: (l, w) => 'Perimeter of a ' + l + ' cm by ' + w + ' cm rectangle',
+    triPeri: (a, b, c) => 'Perimeter of a triangle with sides ' + a + ', ' + b + ' and ' + c + ' cm',
+    rightArea: (a, b) => 'Area of a right triangle ' + a + ' cm by ' + b + ' cm',
     tableOf: (a) => 'Times table ' + a,
     division: 'Division',
     addition: 'Addition',
@@ -114,6 +137,7 @@ const COPY = {
     relatives: 'Negative numbers',
     mul10: 'Multiply by 10',
     mulBy: (m) => 'Multiply by ' + m,
+    divBy: (m) => 'Divide by ' + m,
     tenths: 'Sum of tenths',
     decSum: 'Sum of decimals',
     decMul: 'Decimal × whole number',
@@ -152,17 +176,31 @@ const COPY = {
     assemble: (clues) => 'Write: ' + clues,
     largest: (a, b) => 'Which is larger: ' + a + ' or ' + b + '?',
     fracNum: (dec, den) => dec + ' = ? / ' + den,
-    roundDown: (n) => 'Round ' + n + ' down to the unit',
-    roundUp: (n) => 'Round ' + n + ' up to the unit',
-    truncate: (n) => 'Truncate ' + n + ' to the unit',
+    roundDown: (n, place) => 'Round ' + n + ' down to the ' + place,
+    roundUp: (n, place) => 'Round ' + n + ' up to the ' + place,
+    truncate: (n, place) => 'Truncate ' + n + ' to the ' + place,
+    roundPlace: ['unit', 'tenth', 'hundredth'],
+    mid: (a, b) => 'Halfway between ' + a + ' and ' + b,
+    euroToCent: (e) => e + ' € = ? cents',
+    centToEuro: (c) => c + ' cents = ? €',
+    clockGap: (a, b) => 'From ' + a + ' to ' + b + ' = ? min',
+    clock: (h, m) => h + ':' + (m < 10 ? '0' + m : m),
     digitTag: 'Digit in a place',
     countTag: 'How many units',
     assembleTag: 'Mystery number',
     largestTag: 'Compare decimals',
     fracNumTag: 'Decimal fraction',
-    roundTag: 'Round to the unit',
-    truncTag: 'Truncate to the unit',
-    alignTag: 'Line up the commas'
+    roundTag: (place) => 'Round to the ' + place,
+    truncTag: (place) => 'Truncate to the ' + place,
+    alignTag: 'Line up the commas',
+    gapTag: 'Decimal gap',
+    midTag: 'Midpoint of two decimals',
+    bridgeTag: 'Decimal → fraction',
+    moneyTag: 'Euros and cents',
+    minSecTag: 'Minutes and seconds',
+    hourTag: 'Hours and minutes',
+    addDurTag: 'Add durations',
+    clockGapTag: 'Between two clock times'
   }
 };
 
@@ -204,6 +242,34 @@ function placeWord(rank, lang, count) {
 /** « de » elides before a vowel: le nombre d'unités, le nombre de dizaines. */
 function frDe(word) {
   return /^[aeiouéè]/.test(word) ? "d'" + word : 'de ' + word;
+}
+
+/** Value of a canonical French decimal string. */
+function val(s) {
+  return parseFloat(s.replace(',', '.'));
+}
+
+/**
+ * Move the comma k places right (k > 0, ÷ 0,1) or left (k < 0, × 0,1) on a canonical
+ * French decimal. Done on digits, not on floats, so 5,8 × 0,001 is 0,0058 and not 0,0058000000001.
+ */
+function shiftComma(s, k) {
+  const parts = s.split(',');
+  let int = parts[0].split('');
+  const dec = parts[1] ? parts[1].split('') : [];
+  for (let i = 0; i < Math.abs(k); i++) {
+    if (k > 0) int.push(dec.length ? dec.shift() : '0');
+    else dec.unshift(int.length ? int.pop() : '0');
+  }
+  while (int.length > 1 && int[0] === '0') int.shift();
+  if (!int.length) int = ['0'];
+  while (dec.length && dec[dec.length - 1] === '0') dec.pop();
+  return int.join('') + (dec.length ? ',' + dec.join('') : '');
+}
+
+/** Minutes inside an hour are written on two digits: 2 h 05, never 2 h 5. */
+function mm(m) {
+  return m < 10 ? '0' + m : String(m);
 }
 
 /** A number kept as digits so prompts, answers and place lookups never drift. */
@@ -265,15 +331,21 @@ function weighted(pairs, rnd) {
   return pairs[pairs.length - 1][0];
 }
 
-/**
- * 1 = starter (age ≤ 9 or level 1), 2 = 6e core, 3 = 5e and above.
- * Difficulty nudges one step, never above the starter tier for the youngest.
- */
-function pvTier(level, ctx) {
-  let t = ctx.age <= 9 || level <= 1 ? 1 : ctx.age >= 12 || level >= 4 ? 3 : 2;
+/** Difficulty nudges one step, never above the starter tier for the youngest. */
+function nudge(t, level, ctx) {
   if (ctx.diff === 'expert' && ctx.age >= 10 && level >= 2) t = Math.min(3, t + 1);
   if (ctx.diff === 'facile') t = Math.max(1, t - 1);
   return t;
+}
+
+/** 1 = starter (age ≤ 9 or level 1), 2 = 6e core, 3 = 5e and above. */
+function pvTier(level, ctx) {
+  return nudge(ctx.age <= 9 || level <= 1 ? 1 : ctx.age >= 12 || level >= 4 ? 3 : 2, level, ctx);
+}
+
+/** Same ladder for measures, one level later: the old `easy` flag was age ≤ 9 or level ≤ 2. */
+function mesTier(level, ctx) {
+  return nudge(ctx.age <= 9 || level <= 2 ? 1 : ctx.age >= 12 || level >= 5 ? 3 : 2, level, ctx);
 }
 
 /** Share of the deci mode spent on place value; the rest stays classic ×10 / ÷10. */
@@ -413,15 +485,25 @@ function gPvFracNum(tier, ctx) {
   };
 }
 
-/** F — arrondi par défaut / par excès / troncature à l'unité. Numbers stay positive. */
+/**
+ * F — arrondi par défaut / par excès / troncature, à l'unité, au dixième ou au centième.
+ * Numbers stay positive, so *par défaut* and *troncature* are the same value (the floor at
+ * that place) exactly as in the 6e exercise books. There is no "nearest": the pad cannot
+ * express the tie rule, so it would only be a guess.
+ */
 function gPvRound(tier, ctx) {
   const rnd = ctx.rnd;
   const C = L(ctx.lang);
-  const n = randomNumber(rint(1, tier === 1 ? 2 : 3, rnd), rint(1, tier === 3 ? 3 : 2, rnd), rnd);
-  const floor = parseInt(n.int.join(''), 10);
-  if (tier === 3 && rnd() < 0.35) return { t: C.roundUp(n.s), a: floor + 1, tag: C.roundTag };
-  if (rnd() < 0.35) return { t: C.truncate(n.s), a: floor, tag: C.truncTag };
-  return { t: C.roundDown(n.s), a: floor, tag: C.roundTag };
+  /* Keeping at least one digit past the cut is what makes the question worth asking. */
+  const p = tier === 2 ? rint(0, 1, rnd) : rint(0, 2, rnd);
+  const intLen = rint(1, p === 2 ? 2 : 3, rnd);
+  const n = randomNumber(intLen, rint(p + 1, Math.min(4, p + 2), rnd), rnd);
+  const place = C.roundPlace[p];
+  const kept = parseInt(n.int.join('') + n.dec.slice(0, p).join(''), 10);
+  const scale = Math.pow(10, p);
+  if (tier === 3 && rnd() < 0.35) return { t: C.roundUp(n.s, place), a: (kept + 1) / scale, tag: C.roundTag(place) };
+  if (rnd() < 0.35) return { t: C.truncate(n.s, place), a: kept / scale, tag: C.truncTag(place) };
+  return { t: C.roundDown(n.s, place), a: kept / scale, tag: C.roundTag(place) };
 }
 
 const PV_WEIGHTS = {
@@ -430,9 +512,110 @@ const PV_WEIGHTS = {
   3: [[gPvDigit, 20], [gPvCount, 20], [gPvAssemble, 18], [gPvCompare, 16], [gPvFracNum, 14], [gPvRound, 12]]
 };
 
-function gPlaceValue(level, ctx) {
-  const tier = pvTier(level, ctx);
+function gPlaceValue(tier, ctx) {
   return weighted(PV_WEIGHTS[tier], ctx.rnd)(tier, ctx);
+}
+
+/* ---------- decimals at work: money, comma shift, gap, midpoint, fraction bridge ---------- */
+
+/**
+ * G — euros and centimes, the everyday × 100 / ÷ 100. Shared by `deci` and `mes`, because it is
+ * both a comma shift and a unit conversion; duplicating it would only make the two drift apart.
+ */
+function gMoney(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const cents = tier === 1
+    ? rint(1, 9, rnd) * 100 + pick([0, 5, 10, 20, 25, 50, 75], rnd)
+    : tier === 2 ? rint(105, 4999, rnd) : rint(1005, 99999, rnd);
+  return rnd() < 0.5
+    ? { t: C.euroToCent(fr(cents / 100)), a: cents, tag: C.moneyTag }
+    : { t: C.centToEuro(cents), a: cents / 100, tag: C.moneyTag };
+}
+
+/** H — × and ÷ by 0,1 / 0,01 / 0,001: the same comma shift, both directions. */
+function gShift(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const k = tier <= 2 ? pick([1, 1, 2], rnd) : pick([1, 2, 3], rnd);
+  const factor = ['0,1', '0,01', '0,001'][k - 1];
+  const div = tier >= 2 && rnd() < 0.42;
+  /* Digit budgets chosen so the shifted answer never outgrows the six-character pad. */
+  const p = rint(0, Math.min(2, 4 - k), rnd);
+  const n = randomNumber(div ? rint(1, Math.min(2, 6 - k), rnd) : rint(1, 3, rnd), p, rnd);
+  return {
+    t: n.s + (div ? ' ÷ ' : ' × ') + factor,
+    a: val(shiftComma(n.s, div ? k : -k)),
+    tag: div ? C.divBy(factor) : C.mulBy(factor)
+  };
+}
+
+/** I — how much bigger, straight after the compare item: 87,9 − 86,989. */
+function gDeciGap(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const maxDec = tier === 3 ? 3 : 2;
+  const iLen = tier === 1 ? 1 : rint(1, 2, rnd);
+  const la = rint(1, maxDec, rnd);
+  /* Unequal decimal lengths are the whole point: 87,9 looks smaller than 86,989 until you align. */
+  const lb = tier === 1 ? la : la === maxDec ? la - 1 || 1 : la + 1;
+  const hiInt = intDigits(iLen, rnd);
+  const loInt = String(Math.max(1, parseInt(hiInt.join(''), 10) - rint(0, 2, rnd))).split('');
+  let a = digitsToNumber(hiInt, decDigits(la, rnd));
+  let b = digitsToNumber(loInt, decDigits(lb, rnd));
+  if (a.v === b.v) {
+    const dec = b.dec.slice();
+    dec[dec.length - 1] = (dec[dec.length - 1] % 9) + 1;
+    b = digitsToNumber(b.int, dec);
+  }
+  if (a.v < b.v) { const t = a; a = b; b = t; }
+  return { t: a.s + ' − ' + b.s, a: Math.round((a.v - b.v) * 1e6) / 1e6, tag: C.gapTag };
+}
+
+/** J — the number halfway between two others. Built from the middle out, so it always lands clean. */
+function gDeciMid(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  if (tier < 3 || rnd() < 0.35) {
+    const lo = rint(2, 60, rnd);
+    const hi = lo + rint(1, 9, rnd);
+    return { t: C.mid(lo, hi), a: (lo + hi) / 2, tag: C.midTag };
+  }
+  const scale = rnd() < 0.5 ? 10 : 100;
+  const step = rint(1, scale === 10 ? 24 : 45, rnd);
+  const middle = rint(step + 1, scale === 10 ? 480 : 4800, rnd);
+  return {
+    t: C.mid(fr((middle - step) / scale), fr((middle + step) / scale)),
+    a: middle / scale,
+    tag: C.midTag
+  };
+}
+
+/** K — 0,75 = ? / 4. Denominators are never powers of ten, so this is not item E in disguise. */
+const BRIDGE_DENS = { 1: [2, 4, 5], 2: [2, 4, 5, 8, 20, 25], 3: [4, 8, 16, 20, 25, 40, 50] };
+
+function gDeciBridge(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const den = pick(BRIDGE_DENS[tier], rnd);
+  const top = den * (tier === 1 ? 2 : 3);
+  let num;
+  /* A whole-number left side would read « 2 = ? / 4 » and stop being a decimal question. */
+  do { num = rint(1, top, rnd); } while (num % den === 0);
+  return { t: C.fracNum(fr(num / den), den), a: num, tag: C.bridgeTag };
+}
+
+const EX_WEIGHTS = {
+  1: [[gMoney, 70], [gDeciGap, 30]],
+  2: [[gMoney, 34], [gDeciGap, 24], [gDeciBridge, 26], [gDeciMid, 16]],
+  3: [[gMoney, 18], [gDeciGap, 24], [gDeciBridge, 28], [gDeciMid, 30]]
+};
+
+/** Share of what is left after place value; the rest stays classic ×10 / ÷10. */
+const EX_SHARE = { 1: 0.25, 2: 0.32, 3: 0.36 };
+
+function gDeciApplied(tier, ctx) {
+  return weighted(EX_WEIGHTS[tier], ctx.rnd)(tier, ctx);
 }
 
 function gTables(level, ctx) {
@@ -531,43 +714,177 @@ function gFrac(level, ctx) {
   return { t: C.fracDec(d[0], d[1]), a: d[2], tag: C.fracDecTag };
 }
 
-function gMes(level, ctx) {
+/* ---------- measures: units, money, time, geometry ---------- */
+
+function gMesUnits(tier, ctx) {
   const rnd = ctx.rnd;
   const C = L(ctx.lang);
-  const easy = ctx.age <= 9 || level <= 2;
+  const easy = tier === 1;
   const r = rnd();
-  if (r < 0.22) {
+  if (r < 0.24) {
     const n = easy ? rint(2, 9, rnd) : rint(11, 99, rnd) / 10;
     return { t: fr(n) + ' m = ? cm', a: Math.round(n * 100), tag: C.lengths };
   }
-  if (r < 0.40) {
+  if (r < 0.44) {
     const n = easy ? rint(2, 9, rnd) : rint(11, 95, rnd) / 10;
     return { t: fr(n) + ' km = ? m', a: Math.round(n * 1000), tag: C.lengths };
   }
-  if (r < 0.55) {
+  if (r < 0.62) {
     const n = easy ? rint(2, 9, rnd) * 100 : rint(15, 480, rnd) * 10;
     return { t: n + ' cm = ? m', a: Math.round(n) / 100, tag: C.lengths };
   }
-  if (r < 0.70) {
+  if (r < 0.82) {
     const n = easy ? rint(2, 9, rnd) : rint(11, 95, rnd) / 10;
     return { t: fr(n) + ' kg = ? g', a: Math.round(n * 1000), tag: C.masses };
   }
-  if (r < 0.82) {
-    const n = easy ? rint(2, 9, rnd) : rint(11, 95, rnd) / 10;
-    return { t: fr(n) + ' L = ? mL', a: Math.round(n * 1000), tag: C.volumes };
+  const n = easy ? rint(2, 9, rnd) : rint(11, 95, rnd) / 10;
+  return { t: fr(n) + ' L = ? mL', a: Math.round(n * 1000), tag: C.volumes };
+}
+
+/**
+ * Time answers are always one number the pad can type: minutes for everything that mixes
+ * hours and minutes, decimal hours for « ? h », seconds for « ? s ». Never « 2 h 20 ».
+ */
+function tHourToMin(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const h = tier === 1 ? rint(1, 3, rnd) : tier === 2 ? rint(1, 5, rnd) : rint(1, 9, rnd);
+  if (tier === 1 && rnd() < 0.3) return { t: h + ' h = ? min', a: h * 60, tag: C.hourTag };
+  const m = tier === 1 ? pick([10, 15, 20, 30, 40, 45], rnd) : rint(1, 59, rnd);
+  return { t: h + ' h ' + mm(m) + ' = ? min', a: h * 60 + m, tag: C.hourTag };
+}
+
+/** Quarter-hour steps only, so « ? h » is always 2, 2,25, 2,5 or 2,75. */
+function tMinToHour(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const n = tier === 1 ? rint(2, 9, rnd) * 60 : tier === 2 ? rint(3, 16, rnd) * 30 : rint(5, 32, rnd) * 15;
+  return { t: n + ' min = ? h', a: n / 60, tag: C.hourTag };
+}
+
+function tMinSec(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  if (rnd() < 0.5) {
+    const n = tier === 3 && rnd() < 0.3 ? rint(5, 19, rnd) / 2 : rint(2, tier === 1 ? 9 : 16, rnd);
+    return { t: fr(n) + ' min = ? s', a: Math.round(n * 60), tag: C.minSecTag };
   }
-  if (r < 0.92) {
-    const h = rint(1, 5, rnd), m = pick([15, 30, 45, 10, 20, 40], rnd);
-    return { t: h + ' h ' + m + ' = ? min', a: h * 60 + m, tag: C.durations };
+  /* Whole minutes back: the half-minute flavour lives in the other direction (2,5 min = 150 s). */
+  const n = rint(2, tier === 3 ? 16 : 9, rnd) * 60;
+  return { t: n + ' s = ? min', a: n / 60, tag: C.minSecTag };
+}
+
+/** A duration written the way a timetable writes it: 1 h 45, 2 h, 35 min. */
+function durText(h, m) {
+  if (!h) return m + ' min';
+  return m ? h + ' h ' + mm(m) : h + ' h';
+}
+
+function tAddDur(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const one = () => ({ h: rint(1, tier === 3 ? 4 : 2, rnd), m: rint(0, 11, rnd) * 5 });
+  let a, b;
+  if (tier === 1) {
+    a = { h: 0, m: rint(2, 10, rnd) * 5 };
+    b = { h: 0, m: rint(2, 10, rnd) * 5 };
+  } else if (tier === 2) {
+    a = one();
+    b = { h: 0, m: rint(3, 11, rnd) * 5 };
+  } else {
+    a = one();
+    b = one();
   }
-  if (level >= 3) {
-    const c = rint(3, 15, rnd);
-    return rnd() < 0.5
-      ? { t: C.area(c), a: c * c, tag: C.areaTag }
-      : { t: C.peri(c), a: 4 * c, tag: C.periTag };
-  }
-  const n = rint(2, 9, rnd) * 60;
-  return { t: n + ' min = ? h', a: n / 60, tag: C.durations };
+  const total = (a.h + b.h) * 60 + a.m + b.m;
+  return { t: durText(a.h, a.m) + ' + ' + durText(b.h, b.m) + ' = ? min', a: total, tag: C.addDurTag };
+}
+
+/** The gap between two clock times, answered in minutes. Tier 1 always lands on a whole hour. */
+function tClockGap(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const h = rint(7, tier === 1 ? 11 : 20, rnd);
+  /* Capped at 58 so the same-hour branch always has a later minute left to land on. */
+  const m = tier === 1 ? rint(1, 11, rnd) * 5 : rint(1, 58, rnd);
+  let eh, em;
+  if (tier === 1 || rnd() < 0.35) { eh = h + 1; em = 0; }
+  else if (tier === 2) { eh = h; em = rint(m + 1, 59, rnd); }
+  else { eh = h + rint(1, 2, rnd); em = rint(0, 59, rnd); }
+  const start = h * 60 + m;
+  const end = eh * 60 + em;
+  return {
+    t: C.clockGap(C.clock(h, m), C.clock(eh, em)),
+    a: end - start,
+    tag: C.clockGapTag
+  };
+}
+
+const TIME_WEIGHTS = {
+  1: [[tHourToMin, 30], [tMinToHour, 20], [tMinSec, 25], [tAddDur, 10], [tClockGap, 15]],
+  2: [[tHourToMin, 22], [tMinToHour, 18], [tMinSec, 16], [tAddDur, 22], [tClockGap, 22]],
+  3: [[tHourToMin, 16], [tMinToHour, 18], [tMinSec, 14], [tAddDur, 26], [tClockGap, 26]]
+};
+
+function gMesTime(tier, ctx) {
+  return weighted(TIME_WEIGHTS[tier], ctx.rnd)(tier, ctx);
+}
+
+function gSquare(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const c = rint(3, tier === 3 ? 25 : 15, rnd);
+  return rnd() < 0.5
+    ? { t: C.area(c), a: c * c, tag: C.areaTag }
+    : { t: C.peri(c), a: 4 * c, tag: C.periTag };
+}
+
+function gRect(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const l = rint(4, tier === 3 ? 20 : 12, rnd);
+  const w = rint(2, l - 1, rnd);
+  return rnd() < 0.5
+    ? { t: C.rectArea(l, w), a: l * w, tag: C.areaTag }
+    : { t: C.rectPeri(l, w), a: 2 * (l + w), tag: C.periTag };
+}
+
+/** Three sides that can actually close: the third one stays inside the triangle inequality. */
+function gTriPeri(tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const a = rint(3, tier === 3 ? 18 : 12, rnd);
+  const b = rint(3, tier === 3 ? 18 : 12, rnd);
+  const c = rint(Math.abs(a - b) + 1, a + b - 1, rnd);
+  return { t: C.triPeri(a, b, c), a: a + b + c, tag: C.periTag };
+}
+
+/** Half of the two legs: the answer is a whole number or a clean half. */
+function gRightTri(_tier, ctx) {
+  const rnd = ctx.rnd;
+  const C = L(ctx.lang);
+  const a = rint(3, 12, rnd), b = rint(2, 9, rnd);
+  return { t: C.rightArea(a, b), a: a * b / 2, tag: C.areaTag };
+}
+
+const GEO_WEIGHTS = {
+  1: [[gSquare, 100]],
+  2: [[gSquare, 45], [gRect, 40], [gTriPeri, 15]],
+  3: [[gSquare, 25], [gRect, 35], [gTriPeri, 18], [gRightTri, 22]]
+};
+
+function gMesGeo(tier, ctx) {
+  return weighted(GEO_WEIGHTS[tier], ctx.rnd)(tier, ctx);
+}
+
+const MES_WEIGHTS = {
+  1: [[gMesUnits, 55], [gMoney, 15], [gMesTime, 20], [gMesGeo, 10]],
+  2: [[gMesUnits, 45], [gMoney, 14], [gMesTime, 24], [gMesGeo, 17]],
+  3: [[gMesUnits, 38], [gMoney, 12], [gMesTime, 25], [gMesGeo, 25]]
+};
+
+function gMes(level, ctx) {
+  const tier = mesTier(level, ctx);
+  return weighted(MES_WEIGHTS[tier], ctx.rnd)(tier, ctx);
 }
 
 function gMalin(level, ctx) {
@@ -611,11 +928,13 @@ function gMalin(level, ctx) {
 }
 
 function gDeci(level, ctx) {
-  if (ctx.rnd() < pvShare(level, ctx)) return gPlaceValue(level, ctx);
-  return gClassicDeci(level, ctx);
+  const tier = pvTier(level, ctx);
+  if (ctx.rnd() < pvShare(level, ctx)) return gPlaceValue(tier, ctx);
+  if (ctx.rnd() < EX_SHARE[tier]) return gDeciApplied(tier, ctx);
+  return gClassicDeci(level, ctx, tier);
 }
 
-function gClassicDeci(level, ctx) {
+function gClassicDeci(level, ctx, tier) {
   const rnd = ctx.rnd;
   const C = L(ctx.lang);
   if (ctx.age <= 9) {
@@ -631,6 +950,7 @@ function gClassicDeci(level, ctx) {
     const n = rint(3, 25, rnd);
     return { t: C.half(n * 2), a: n, tag: C.halfTag };
   }
+  if (tier >= 2 && rnd() < 0.14) return gShift(tier, ctx);
   const r = rnd();
   if (level <= 1 || r < 0.28) {
     const n = rint(11, 99, rnd) / 10, m = pick([10, 100], rnd);
