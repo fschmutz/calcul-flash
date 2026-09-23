@@ -201,8 +201,9 @@ function placeWord(rank, lang, count) {
   return count != null && count <= 1 ? p.fr1 : p.fr;
 }
 
+/** « de » elides before a vowel: le nombre d'unités, le nombre de dizaines. */
 function frDe(word) {
-  return /^[aeiouéèêh]/.test(word) ? "d'" + word : 'de ' + word;
+  return /^[aeiouéè]/.test(word) ? "d'" + word : 'de ' + word;
 }
 
 /** A number kept as digits so prompts, answers and place lookups never drift. */
@@ -321,7 +322,7 @@ function gPvCount(tier, ctx) {
   }
   const ranks = namedRanks(n)
     .filter((r) => allow.indexOf(r) !== -1 && String(countAt(n, r)).length <= 6);
-  /** Two digits at least, so the count is never just the digit sitting there. */
+  /* Two digits at least, so the count is never just the digit sitting there. */
   const telling = ranks.filter((r) => countAt(n, r) >= 10);
   const rank = pick(telling.length ? telling : ranks, rnd);
   const word = placeWord(rank, ctx.lang);
