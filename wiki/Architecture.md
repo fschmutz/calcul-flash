@@ -10,7 +10,7 @@ js/generate.js      seven families + mix
 js/fx.js            canvas fireworks
 js/i18n.js          EN / FR
 js/version.js       APP_VERSION
-sw.js               cache flash-v1; version.json is never precached
+sw.js               cache flash-v2; version.json is never precached
 wiki/               source of truth → GitHub wiki via scripts/wiki-sync.sh
 test/               node --test (no browser)
 ```

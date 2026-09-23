@@ -40,13 +40,17 @@ Most kids' mental-math pages phone home, pull Google Fonts, and never let you re
 | `tables` | Tables × jusqu'à 12, et divisions | Times tables to 12, and division |
 | `addsub` | + et − avec retenues | Lightning +/− with regrouping |
 | `comp` | Compléments à 100 et à 1000 | Make 100 and 1000 |
-| `deci` | ×10, ×100, virgules | ×10, ×100, decimals |
+| `deci` | ×10, ×100, virgules, chiffre des / nombre de, nombre mystère, comparer, fractions décimales, arrondi | ×10, ×100, decimals, digit vs count of a place, build a number from its places, compare, decimal fractions, rounding |
 | `frac` | 3/4 de 40, 25 % de 60 | 3/4 of 40, 25% of 60 |
 | `mes` | m, cm, kg, L, durées | m, cm, kg, L, time |
 | `malin` | × 5, × 9, × 11, × 25, carrés, doubles | × 5, × 9, × 11, × 25, squares, doubles |
 | `mix` | Les 7 familles, sans prévenir | All 7 families, no warning |
 
 Age-calibrated 8–14. Easy / Medium / Expert. 45 s, 60 s, or 2 min. Web Audio beeps. Works offline after the first load.
+
+`deci` covers the whole French 6ème decimal place-value programme — *chiffre des* vs *nombre de*, writing a number
+from its places, comparing decimals of different lengths, decimal fractions, *arrondi / troncature à l'unité* —
+graded across ages 8–14 and levels 1–6. Details: [wiki/Modes](https://github.com/fschmutz/calcul-flash/wiki/Modes).
 
 ## Privacy
 
