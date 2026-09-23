@@ -64,6 +64,42 @@ function countAtRank(s, rank) {
   return parseInt(kept.join(''), 10);
 }
 
+/** Cut a positive decimal at p decimals, on the digits: floor, and floor + one unit of that place. */
+function cutAt(s, p, up) {
+  const { int, dec } = splitDigits(s);
+  if (dec.length <= p) throw new Error('nothing to cut at ' + p + ' in ' + s);
+  const kept = parseInt(int.join('') + dec.slice(0, p).join(''), 10);
+  return (kept + (up ? 1 : 0)) / Math.pow(10, p);
+}
+
+const CUT_PLACE = { "à l'unité": 0, 'au dixième': 1, 'au centième': 2, unit: 0, tenth: 1, hundredth: 2 };
+
+function cutPlace(word) {
+  const p = CUT_PLACE[word];
+  if (p === undefined) throw new Error('unknown rounding place: ' + word);
+  return p;
+}
+
+/** « 1 h 45 », « 2 h » or « 35 min » in minutes. */
+function durMinutes(s) {
+  let m = s.match(/^(\d+) h (\d+)$/);
+  if (m) return +m[1] * 60 + +m[2];
+  m = s.match(/^(\d+) h$/);
+  if (m) return +m[1] * 60;
+  m = s.match(/^(\d+) min$/);
+  if (m) return +m[1];
+  throw new Error('unparsed duration: ' + s);
+}
+
+/** « 14 h 20 », « 15 h » (FR) or « 14:20 » (EN) as minutes since midnight. */
+function clockMinutes(s) {
+  let m = s.match(/^(\d+) h (\d+)$/) || s.match(/^(\d+):(\d+)$/);
+  if (m) return +m[1] * 60 + +m[2];
+  m = s.match(/^(\d+) h$/);
+  if (m) return +m[1] * 60;
+  throw new Error('unparsed clock time: ' + s);
+}
+
 /** Evaluate the printed prompt; must match q.a. */
 export function expectedFromText(t) {
   const s = t.trim();
@@ -92,30 +128,60 @@ export function expectedFromText(t) {
   }
   if ((m = s.match(/^([\d,]+) = \? \/ (\d+)$/))) {
     const dec = (m[1].split(',')[1] || '').length;
-    if (Math.pow(10, dec) !== +m[2]) throw new Error('denominator mismatch: ' + s);
-    return Math.round(num(m[1]) * +m[2]);
+    const den = +m[2];
+    const exact = Math.round(num(m[1]) * den);
+    /* Powers of ten are the decimal-fraction item; anything else is the fraction bridge. */
+    if (Math.pow(10, dec) !== den && Math.abs(num(m[1]) * den - exact) > 1e-9) {
+      throw new Error('numerator is not whole: ' + s);
+    }
+    return exact;
   }
-  if ((m = s.match(/^Arrondi à l'unité par défaut de ([\d,]+)$/)) ||
-      (m = s.match(/^Troncature à l'unité de ([\d,]+)$/)) ||
-      (m = s.match(/^Round ([\d,]+) down to the unit$/)) ||
-      (m = s.match(/^Truncate ([\d,]+) to the unit$/))) {
-    return Math.floor(num(m[1]));
+  if ((m = s.match(/^Arrondi (.+) par défaut de ([\d,]+)$/))) return cutAt(m[2], cutPlace(m[1]), false);
+  if ((m = s.match(/^Troncature (.+) de ([\d,]+)$/))) return cutAt(m[2], cutPlace(m[1]), false);
+  if ((m = s.match(/^Arrondi (.+) par excès de ([\d,]+)$/))) return cutAt(m[2], cutPlace(m[1]), true);
+  if ((m = s.match(/^Round ([\d,]+) down to the (.+)$/))) return cutAt(m[1], cutPlace(m[2]), false);
+  if ((m = s.match(/^Truncate ([\d,]+) to the (.+)$/))) return cutAt(m[1], cutPlace(m[2]), false);
+  if ((m = s.match(/^Round ([\d,]+) up to the (.+)$/))) return cutAt(m[1], cutPlace(m[2]), true);
+  if ((m = s.match(/^(?:Le milieu de|Halfway between) ([\d,]+) (?:et|and) ([\d,]+)$/))) {
+    return (num(m[1]) + num(m[2])) / 2;
   }
-  if ((m = s.match(/^Arrondi à l'unité par excès de ([\d,]+)$/)) ||
-      (m = s.match(/^Round ([\d,]+) up to the unit$/))) {
-    return Math.ceil(num(m[1]));
-  }
+  if ((m = s.match(/^([\d,]+) € = \? (?:centimes|cents)$/))) return Math.round(num(m[1]) * 100);
+  if ((m = s.match(/^(\d+) (?:centimes|cents) = \? €$/))) return +m[1] / 100;
   if ((m = s.match(/^(.+) m = \? cm$/))) return Math.round(num(m[1]) * 100);
   if ((m = s.match(/^(.+) km = \? m$/))) return Math.round(num(m[1]) * 1000);
   if ((m = s.match(/^(.+) cm = \? m$/))) return Math.round(num(m[1])) / 100;
   if ((m = s.match(/^(.+) kg = \? g$/))) return Math.round(num(m[1]) * 1000);
   if ((m = s.match(/^(.+) L = \? mL$/))) return Math.round(num(m[1]) * 1000);
-  if ((m = s.match(/^(\d+) h (\d+) = \? min$/))) return +m[1] * 60 + +m[2];
+  if ((m = s.match(/^(.+) \+ (.+) = \? min$/))) return durMinutes(m[1]) + durMinutes(m[2]);
+  if ((m = s.match(/^(?:De|From) (.+?) (?:à|to) (.+) = \? min$/))) {
+    return clockMinutes(m[2]) - clockMinutes(m[1]);
+  }
+  if ((m = s.match(/^(\d+) s = \? min$/))) return +m[1] / 60;
+  if ((m = s.match(/^(.+) = \? min$/))) return durMinutes(m[1]);
   if ((m = s.match(/^(\d+) min = \? h$/))) return num(m[1]) / 60;
+  if ((m = s.match(/^(.+) min = \? s$/))) return Math.round(num(m[1]) * 60);
   if ((m = s.match(/^Aire d'un carré de côté (\d+) cm$/))) return (+m[1]) * (+m[1]);
   if ((m = s.match(/^Périmètre d'un carré de côté (\d+) cm$/))) return 4 * (+m[1]);
   if ((m = s.match(/^Area of a square of side (\d+) cm$/))) return (+m[1]) * (+m[1]);
   if ((m = s.match(/^Perimeter of a square of side (\d+) cm$/))) return 4 * (+m[1]);
+  if ((m = s.match(/^Aire d'un rectangle de (\d+) cm sur (\d+) cm$/)) ||
+      (m = s.match(/^Area of a (\d+) cm by (\d+) cm rectangle$/))) {
+    return (+m[1]) * (+m[2]);
+  }
+  if ((m = s.match(/^Périmètre d'un rectangle de (\d+) cm sur (\d+) cm$/)) ||
+      (m = s.match(/^Perimeter of a (\d+) cm by (\d+) cm rectangle$/))) {
+    return 2 * (+m[1] + +m[2]);
+  }
+  if ((m = s.match(/^Périmètre d'un triangle de côtés (\d+), (\d+) et (\d+) cm$/)) ||
+      (m = s.match(/^Perimeter of a triangle with sides (\d+), (\d+) and (\d+) cm$/))) {
+    const sides = [+m[1], +m[2], +m[3]].sort((x, y) => x - y);
+    if (sides[0] + sides[1] <= sides[2]) throw new Error('impossible triangle: ' + s);
+    return sides[0] + sides[1] + sides[2];
+  }
+  if ((m = s.match(/^Aire d'un triangle rectangle de (\d+) cm sur (\d+) cm$/)) ||
+      (m = s.match(/^Area of a right triangle (\d+) cm by (\d+) cm$/))) {
+    return (+m[1]) * (+m[2]) / 2;
+  }
   if ((m = s.match(/^(?:La moitié de|Half of) (.+)$/))) return num(m[1]) / 2;
   if ((m = s.match(/^(?:Le quart de|A quarter of) (.+)$/))) return num(m[1]) / 4;
   if ((m = s.match(/^(?:Le tiers de|A third of) (.+)$/))) return num(m[1]) / 3;
@@ -220,15 +286,27 @@ function deciSample(level, age, diff, lang, n, seed) {
   return out;
 }
 
+const POWER_OF_TEN = / = \? \/ (?:10|100|1000|10000)$/;
+
 const IS = {
   digit: (t) => /le chiffre des |, the .+ digit\?$/.test(t),
   count: (t) => /le nombre (?:de |d')|how many /.test(t),
   assemble: (t) => /^(?:Écris : |Write: )/.test(t),
   compare: (t) => /^(?:Le plus grand : |Which is larger: )/.test(t),
-  fracNum: (t) => / = \? \/ \d+$/.test(t),
+  fracNum: (t) => POWER_OF_TEN.test(t),
   round: (t) => /^(?:Arrondi|Troncature|Round |Truncate )/.test(t)
 };
 const isPlaceValue = (t) => Object.values(IS).some((f) => f(t));
+
+/** The decimals-at-work items, which live next to place value inside `deci`. */
+const EX = {
+  money: (t) => / € = \? (?:centimes|cents)$/.test(t) || /(?:centimes|cents) = \? €$/.test(t),
+  gap: (t) => / − /.test(t),
+  bridge: (t) => / = \? \/ \d+$/.test(t) && !POWER_OF_TEN.test(t),
+  mid: (t) => /^(?:Le milieu de|Halfway between)/.test(t)
+};
+const isApplied = (t) => Object.values(EX).some((f) => f(t));
+const isShift = (t) => / [×÷] 0,0*1$/.test(t);
 
 test('every new prompt shape is answered by its own text', () => {
   let seen = 0;
@@ -400,15 +478,161 @@ test('decimal fraction numerators have no leading zero', () => {
   }
 });
 
-test('rounding to the unit is floor by default, and stays rare', () => {
+test('rounding cuts at the unit, the tenth or the hundredth, floor by default', () => {
   const qs = deciSample(5, 13, 'moyen', 'fr', 4000, 1313);
   const rounds = qs.filter((q) => IS.round(q.t));
   assert.ok(rounds.length > 40);
   assert.ok(rounds.length / qs.length < 0.12, 'rounding share ' + rounds.length / qs.length);
+  const places = new Set();
   for (const q of rounds) {
-    const v = num(q.t.match(/([\d,]+)$/)[1]);
+    const m = q.t.match(/^(?:Arrondi|Troncature) (.+?) (?:par défaut |par excès )?de ([\d,]+)$/);
+    assert.ok(m, q.t);
+    const p = cutPlace(m[1]);
+    const v = num(m[2]);
+    places.add(p);
     assert.ok(v > 0, q.t);
-    assert.equal(q.a, /par excès/.test(q.t) ? Math.ceil(v) : Math.floor(v));
+    /* Positive numbers, so « par défaut » and « troncature » are the same cut. */
+    assert.equal(q.a, cutAt(m[2], p, /par excès/.test(q.t)), q.t);
+    assert.ok((q.t.split(',')[1] || '').length > p, 'nothing to round in ' + q.t);
+    assert.ok(fr(q.a).length <= 6, q.t + ' → ' + fr(q.a));
+  }
+  assert.ok(places.has(0) && places.has(1), 'places seen: ' + [...places].join(' '));
+
+  const top = deciSample(6, 14, 'expert', 'fr', 4000, 1414).filter((q) => IS.round(q.t));
+  const topPlaces = new Set(top.map((q) => cutPlace(q.t.match(/^(?:Arrondi|Troncature) (.+?) (?:par défaut |par excès )?de/)[1])));
+  assert.deepEqual([...topPlaces].sort(), [0, 1, 2], 'the top tier should also cut at the hundredth');
+  assert.ok(top.some((q) => /par excès/.test(q.t)), 'no round-up at the top tier');
+
+  const mid = deciSample(3, 11, 'moyen', 'fr', 4000, 1111).filter((q) => IS.round(q.t));
+  assert.ok(mid.length > 20);
+  assert.ok(!mid.some((q) => /par excès/.test(q.t)), 'round-up leaked below the top tier');
+  assert.ok(!mid.some((q) => /centième/.test(q.t)), 'the hundredth leaked below the top tier');
+  assert.ok(mid.some((q) => /dixième/.test(q.t)), 'the 6e core never cuts at the tenth');
+  assert.ok(mid.some((q) => /unité/.test(q.t)), 'the 6e core never cuts at the unit');
+});
+
+test('euros and centimes convert both ways and stay on the pad', () => {
+  const qs = [].concat(
+    deciSample(2, 9, 'moyen', 'fr', 3000, 909),
+    deciSample(4, 11, 'moyen', 'fr', 3000, 411),
+    deciSample(6, 14, 'expert', 'en', 3000, 614)
+  ).filter((q) => EX.money(q.t));
+  assert.ok(qs.length > 300, 'money items: ' + qs.length);
+  let toCents = 0, toEuros = 0;
+  for (const q of qs) {
+    let m;
+    if ((m = q.t.match(/^([\d,]+) € = \? (?:centimes|cents)$/))) {
+      toCents++;
+      assert.ok(Number.isInteger(q.a) && q.a > 0, q.t);
+      assert.equal(q.a, Math.round(num(m[1]) * 100), q.t);
+      assert.ok((m[1].split(',')[1] || '').length <= 2, 'more than two decimals on a price: ' + q.t);
+    } else if ((m = q.t.match(/^(\d+) (?:centimes|cents) = \? €$/))) {
+      toEuros++;
+      assert.equal(q.a, +m[1] / 100, q.t);
+      assert.ok(fr(q.a).length <= 6, q.t + ' → ' + fr(q.a));
+    } else {
+      throw new Error('unexpected money shape: ' + q.t);
+    }
+  }
+  assert.ok(toCents > 100 && toEuros > 100, 'both directions should show up');
+});
+
+test('× and ÷ by 0,1 / 0,01 / 0,001 shift the comma without float noise', () => {
+  const qs = [].concat(
+    deciSample(3, 11, 'moyen', 'fr', 4000, 311),
+    deciSample(6, 14, 'expert', 'fr', 4000, 614)
+  ).filter((q) => isShift(q.t));
+  assert.ok(qs.length > 200, 'comma-shift items: ' + qs.length);
+  const factors = new Set(), ops = new Set();
+  for (const q of qs) {
+    const m = q.t.match(/^([\d,]+) ([×÷]) (0,0*1)$/);
+    assert.ok(m, q.t);
+    factors.add(m[3]);
+    ops.add(m[2]);
+    const expected = m[2] === '×' ? num(m[1]) * num(m[3]) : num(m[1]) / num(m[3]);
+    assert.ok(Math.abs(expected - q.a) < 1e-9, `${q.t} → ${q.a}`);
+    /* The printed answer must be the clean shift, not 0,5700000000000001. */
+    assert.ok(/^\d+(,\d+)?$/.test(fr(q.a)), q.t + ' → ' + fr(q.a));
+    assert.ok(fr(q.a).length <= 6, q.t + ' → ' + fr(q.a));
+  }
+  assert.deepEqual([...factors].sort(), ['0,001', '0,01', '0,1']);
+  assert.deepEqual([...ops].sort(), ['×', '÷']);
+});
+
+test('decimal gaps are positive and mostly ragged', () => {
+  const qs = deciSample(5, 12, 'moyen', 'fr', 5000, 512).filter((q) => EX.gap(q.t));
+  assert.ok(qs.length > 150, 'gap items: ' + qs.length);
+  let ragged = 0;
+  for (const q of qs) {
+    const m = q.t.match(/^([\d,]+) − ([\d,]+)$/);
+    assert.ok(m, q.t);
+    assert.ok(num(m[1]) > num(m[2]), 'not a positive gap: ' + q.t);
+    assert.ok(Math.abs(num(m[1]) - num(m[2]) - q.a) < 1e-9, q.t);
+    assert.ok(fr(q.a).length <= 6, q.t + ' → ' + fr(q.a));
+    if ((m[1].split(',')[1] || '').length !== (m[2].split(',')[1] || '').length) ragged++;
+  }
+  assert.ok(ragged / qs.length > 0.8, 'unequal-length share ' + (ragged / qs.length).toFixed(2));
+});
+
+test('midpoints land exactly between the two numbers, and belong to the older players', () => {
+  const qs = deciSample(6, 14, 'moyen', 'fr', 5000, 614).filter((q) => EX.mid(q.t));
+  assert.ok(qs.length > 150, 'midpoint items: ' + qs.length);
+  let decimalPair = 0;
+  for (const q of qs) {
+    const m = q.t.match(/^Le milieu de ([\d,]+) et ([\d,]+)$/);
+    assert.ok(m, q.t);
+    const lo = num(m[1]), hi = num(m[2]);
+    assert.ok(hi > lo, q.t);
+    assert.ok(Math.abs((lo + hi) / 2 - q.a) < 1e-9, q.t);
+    assert.ok(fr(q.a).length <= 6, q.t + ' → ' + fr(q.a));
+    if (m[1].includes(',') || m[2].includes(',')) decimalPair++;
+  }
+  assert.ok(decimalPair / qs.length > 0.5, 'the top tier should mostly use decimals');
+  for (const age of [8, 9]) {
+    const young = deciSample(3, age, 'moyen', 'fr', 3000, 300 + age);
+    assert.ok(!young.some((q) => EX.mid(q.t)), 'midpoints reached age ' + age);
+  }
+});
+
+test('the fraction bridge never uses a power of ten and always divides exactly', () => {
+  const qs = [].concat(
+    deciSample(4, 11, 'moyen', 'fr', 4000, 411),
+    deciSample(6, 14, 'expert', 'en', 4000, 614)
+  ).filter((q) => EX.bridge(q.t));
+  assert.ok(qs.length > 300, 'bridge items: ' + qs.length);
+  const dens = new Set();
+  for (const q of qs) {
+    const m = q.t.match(/^([\d,]+) = \? \/ (\d+)$/);
+    const den = +m[2];
+    dens.add(den);
+    assert.ok(!/^10+$/.test(m[2]), 'that is the decimal-fraction item: ' + q.t);
+    assert.ok(Number.isInteger(q.a) && q.a >= 1, q.t);
+    assert.ok(Math.abs(num(m[1]) * den - q.a) < 1e-9, q.t + ' → ' + q.a);
+    assert.notEqual(q.a % den, 0, 'a whole number in disguise: ' + q.t);
+    assert.ok(fr(q.a).length <= 6, q.t);
+  }
+  assert.ok(dens.size >= 5, 'denominators seen: ' + [...dens].join(' '));
+  for (const age of [8, 9]) {
+    const young = deciSample(3, age, 'moyen', 'fr', 3000, 700 + age);
+    assert.ok(!young.some((q) => EX.bridge(q.t)), 'the bridge reached age ' + age);
+  }
+});
+
+test('deci caps every family so the classic drill keeps its rhythm', () => {
+  const grid = (level, age, diff) => {
+    const qs = deciSample(level, age, diff, 'fr', 6000, 5150 + level * 17 + age);
+    const n = qs.length;
+    return {
+      pv: qs.filter((q) => isPlaceValue(q.t)).length / n,
+      ex: qs.filter((q) => isApplied(q.t)).length / n,
+      classic: qs.filter((q) => !isPlaceValue(q.t) && !isApplied(q.t)).length / n
+    };
+  };
+  for (const [level, age] of [[1, 8], [3, 11], [5, 13], [6, 14]]) {
+    const g = grid(level, age, 'moyen');
+    assert.ok(g.ex > 0.12 && g.ex < 0.26, `L${level}/${age} applied share ${g.ex.toFixed(2)}`);
+    assert.ok(g.classic > 0.33, `L${level}/${age} classic share ${g.classic.toFixed(2)}`);
+    assert.ok(Math.abs(g.pv + g.ex + g.classic - 1) < 1e-9);
   }
 });
 
@@ -427,12 +651,177 @@ test('deci still serves the classic ×10 / ÷10 work plus make-1 and ragged sums
   );
 });
 
+/* ---------- measures: money, time, geometry ---------- */
+
+function mesSample(level, age, diff, lang, n, seed) {
+  const random = mulberry32(seed);
+  const out = [];
+  for (let i = 0; i < n; i++) out.push(generateQuestion(level, { mode: 'mes', age, diff, lang, random }));
+  return out;
+}
+
+const MES = {
+  units: (t) => / (?:m|cm|km|kg|L) = \? (?:cm|m|mm|g|mL)$/.test(t),
+  money: (t) => EX.money(t),
+  time: (t) => /= \? (?:min|h|s)$/.test(t),
+  geo: (t) => /^(?:Aire|Périmètre|Area|Perimeter)/.test(t)
+};
+
+test('every measure prompt belongs to exactly one bucket', () => {
+  for (const lang of ['fr', 'en']) {
+    for (const q of mesSample(4, 12, 'moyen', lang, 3000, 4120 + lang.length)) {
+      const hits = Object.keys(MES).filter((k) => MES[k](q.t));
+      assert.equal(hits.length, 1, `${q.t} → ${hits.join('+') || 'none'}`);
+    }
+  }
+});
+
+test('mes caps its buckets so units and time keep the lead', () => {
+  const grid = (level, age) => {
+    const qs = mesSample(level, age, 'moyen', 'fr', 6000, 6100 + level * 19 + age);
+    const share = {};
+    for (const k of Object.keys(MES)) share[k] = qs.filter((q) => MES[k](q.t)).length / qs.length;
+    return share;
+  };
+  for (const [level, age] of [[1, 8], [4, 11], [6, 14]]) {
+    const g = grid(level, age);
+    assert.ok(g.units > 0.33 && g.units < 0.60, `L${level}/${age} units ${g.units.toFixed(2)}`);
+    assert.ok(g.money > 0.08 && g.money < 0.19, `L${level}/${age} money ${g.money.toFixed(2)}`);
+    assert.ok(g.time > 0.16 && g.time < 0.30, `L${level}/${age} time ${g.time.toFixed(2)}`);
+    assert.ok(g.geo > 0.06 && g.geo < 0.30, `L${level}/${age} geometry ${g.geo.toFixed(2)}`);
+  }
+  /* Geometry has to grow with the player; units have to shrink. */
+  assert.ok(grid(6, 14).geo > grid(1, 8).geo * 1.8);
+  assert.ok(grid(6, 14).units < grid(1, 8).units);
+});
+
+test('every time answer is one number the pad can type', () => {
+  const shapes = {
+    hToMin: /^\d+ h(?: \d\d)? = \? min$/,
+    minToH: /^\d+ min = \? h$/,
+    minToS: /^[\d,]+ min = \? s$/,
+    sToMin: /^\d+ s = \? min$/,
+    addDur: / \+ .+ = \? min$/,
+    gap: /^(?:De|From) /
+  };
+  const seen = {};
+  for (const lang of ['fr', 'en']) {
+    for (const level of LEVELS) {
+      for (const age of AGES) {
+        for (const q of mesSample(level, age, 'moyen', lang, 400, 8000 + level * 23 + age)) {
+          if (!MES.time(q.t)) continue;
+          const kind = Object.keys(shapes).find((k) => shapes[k].test(q.t));
+          assert.ok(kind, 'unknown time shape: ' + q.t);
+          seen[kind] = (seen[kind] || 0) + 1;
+          assert.ok(close(expectedFromText(q.t), q.a), `${q.t} → ${q.a}`);
+          assert.ok(q.a > 0 && fr(q.a).length <= 6, `${q.t} → ${q.a}`);
+          /* Minutes and seconds are whole; only « ? h » may carry a comma, in quarters. */
+          if (/= \? (?:min|s)$/.test(q.t)) assert.ok(Number.isInteger(q.a), q.t + ' → ' + q.a);
+          else assert.equal(Math.round(q.a * 4), q.a * 4, 'not a quarter of an hour: ' + q.t);
+          if (/^\d+ h \d\d = /.test(q.t)) {
+            assert.ok(+q.t.match(/^\d+ h (\d\d)/)[1] <= 59, 'minute out of range: ' + q.t);
+          }
+        }
+      }
+    }
+  }
+  for (const k of Object.keys(shapes)) assert.ok(seen[k] > 20, `time shape ${k} barely appears: ` + seen[k]);
+});
+
+test('clock gaps read forwards and stay inside the hour ladder', () => {
+  for (const lang of ['fr', 'en']) {
+    const qs = [].concat(
+      mesSample(1, 8, 'moyen', lang, 3000, 181),
+      mesSample(4, 11, 'moyen', lang, 3000, 411),
+      mesSample(6, 14, 'expert', lang, 3000, 614)
+    ).filter((q) => /^(?:De|From) /.test(q.t));
+    assert.ok(qs.length > 400, 'clock gaps: ' + qs.length);
+    for (const q of qs) {
+      const m = q.t.match(/^(?:De|From) (.+?) (?:à|to) (.+) = \? min$/);
+      assert.ok(m, q.t);
+      const start = clockMinutes(m[1]), end = clockMinutes(m[2]);
+      assert.ok(end > start, 'the clock runs backwards: ' + q.t);
+      assert.equal(q.a, end - start, q.t);
+      assert.ok(q.a <= 180, 'gap too wide for a mental answer: ' + q.t);
+      for (const side of [m[1], m[2]]) {
+        const mins = side.match(/(?: h |:)(\d\d)$/);
+        if (mins) assert.ok(+mins[1] <= 59, 'minute out of range: ' + q.t);
+      }
+    }
+  }
+  /* The youngest always land on a whole hour: « combien de minutes jusqu'à 10 h ». */
+  const young = mesSample(1, 8, 'moyen', 'fr', 3000, 808).filter((q) => /^De /.test(q.t));
+  assert.ok(young.length > 50);
+  for (const q of young) assert.match(q.t, /à \d+ h = \? min$/);
+});
+
+test('geometry grows from squares to rectangles and right triangles', () => {
+  const kinds = (t) => ({
+    square: /carré|square/.test(t),
+    rect: /rectangle/.test(t),
+    tri: /triangle de côtés|triangle with sides/.test(t),
+    right: /triangle rectangle|right triangle/.test(t)
+  });
+  const has = (qs, k) => qs.some((q) => MES.geo(q.t) && kinds(q.t)[k]);
+
+  for (const age of [8, 9]) {
+    for (const level of LEVELS) {
+      const qs = mesSample(level, age, 'expert', 'fr', 1500, 900 + level * 11 + age);
+      assert.ok(!has(qs, 'rect'), `rectangles reached age ${age} L${level}`);
+      assert.ok(!has(qs, 'right'), `half-base-times-height reached age ${age} L${level}`);
+    }
+  }
+  const core = mesSample(4, 11, 'moyen', 'fr', 4000, 411);
+  assert.ok(has(core, 'square') && has(core, 'rect') && has(core, 'tri'), 'the 6e core misses a shape');
+  assert.ok(!has(core, 'right'), 'half-base-times-height leaked into the 6e core');
+  const top = mesSample(6, 14, 'moyen', 'fr', 4000, 614);
+  for (const k of ['square', 'rect', 'tri', 'right']) assert.ok(has(top, k), 'the top tier misses ' + k);
+
+  for (const lang of ['fr', 'en']) {
+    for (const q of mesSample(6, 14, 'moyen', lang, 4000, 640 + lang.length)) {
+      if (!MES.geo(q.t)) continue;
+      assert.ok(close(expectedFromText(q.t), q.a), `${q.t} → ${q.a}`);
+      assert.ok(q.a > 0 && fr(q.a).length <= 6, `${q.t} → ${q.a}`);
+      assert.match(q.t, / cm/, 'a shape without units: ' + q.t);
+    }
+  }
+});
+
 test('comp gives make-1 real weight from level 4', () => {
   const qs = [];
   for (let i = 0; i < 3000; i++) qs.push(generateQuestion(5, { mode: 'comp', age: 11, diff: 'moyen', lang: 'fr' }));
   const ones = qs.filter((q) => /= 1$/.test(q.t));
   assert.ok(ones.length / qs.length > 0.15, 'make-1 share ' + ones.length / qs.length);
   for (const q of ones) assert.ok(close(expectedFromText(q.t), q.a), q.t);
+});
+
+test('fuzz: every mode, level, age, difficulty and language re-derives its own answer', () => {
+  let n = 0, longest = 0;
+  for (const mode of FAM_KEYS) {
+    for (const level of LEVELS) {
+      for (const age of AGES) {
+        for (const diff of DIFFS) {
+          for (const lang of ['fr', 'en']) {
+            const random = mulberry32(mode.length * 7919 + level * 613 + age * 71 + diff.length * 13 + lang.length);
+            for (let i = 0; i < 150; i++) {
+              const q = generateQuestion(level, { mode, age, diff, lang, random });
+              assert.ok(Number.isFinite(q.a), q.t);
+              assert.ok(q.tag && q.famKey && q.fam, q.t);
+              assert.ok(close(expectedFromText(q.t), q.a), `${mode} L${level}/${age} ${diff} ${lang}: ${q.t} → ${q.a}`);
+              const typed = fr(q.a).replace('-', '');
+              assert.ok(/^[\d,]+$/.test(typed), 'not typable: ' + typed);
+              assert.ok(typed.length <= 6, `${q.t} answers "${typed}"`);
+              longest = Math.max(longest, q.t.length);
+              n++;
+            }
+          }
+        }
+      }
+    }
+  }
+  assert.ok(n >= 150000, 'fuzz ran ' + n + ' questions');
+  /* The question card shrinks its font twice; past ~75 characters it would start to spill. */
+  assert.ok(longest <= 75, 'longest prompt ' + longest);
 });
 
 test('no throw on levels 1–6 for every family, age, difficulty', () => {
