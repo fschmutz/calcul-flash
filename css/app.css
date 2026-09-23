@@ -170,8 +170,13 @@ body::before{
   border-radius:18px;padding:22px 14px;text-align:center;
   box-shadow:0 6px 0 rgba(0,0,0,.32), inset 0 -3px 0 rgba(0,0,0,.06);
   margin-bottom:12px;
+  min-height:118px;display:flex;flex-direction:column;justify-content:center;
 }
-.q-text{font-family:'DM Mono',monospace;font-size:clamp(30px,10vw,44px);font-weight:500;letter-spacing:1px}
+.q-text{font-family:'DM Mono',monospace;font-size:clamp(30px,10vw,44px);font-weight:500;letter-spacing:1px;
+        overflow-wrap:break-word;line-height:1.15}
+/* Worded prompts (place value, rounding) stay on the card instead of spilling off it. */
+.q-text.long{font-size:clamp(21px,6.2vw,28px);letter-spacing:.5px}
+.q-text.xlong{font-size:clamp(17px,5vw,23px);letter-spacing:0;line-height:1.25}
 .q-tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8B6FC4;font-weight:600;margin-bottom:8px}
 .question.in{animation:slidein .22s ease-out}
 @keyframes slidein{from{opacity:0;transform:translateX(26px) rotate(1.5deg)}to{opacity:1;transform:none}}
@@ -268,7 +273,10 @@ body::before{
   .key{font-size:32px;padding:20px 0}
   .key.fn{font-size:22px}
   .key.go{font-size:20px}
+  .question{min-height:150px}
   .q-text{font-size:56px}
+  .q-text.long{font-size:34px}
+  .q-text.xlong{font-size:27px}
   .answer{height:70px;font-size:38px}
   .hud-val{font-size:32px}
   .chip{font-size:17px;padding:15px 13px}

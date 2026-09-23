@@ -219,7 +219,10 @@ function drawQ() {
 }
 function nextQ() {
   Sstate.q = drawQ(); Sstate.typed = ''; Sstate.qStart = performance.now();
-  $('qtext').textContent = Sstate.q.t; $('qtag').textContent = Sstate.q.tag;
+  const qt = $('qtext');
+  qt.textContent = Sstate.q.t; $('qtag').textContent = Sstate.q.tag;
+  qt.classList.toggle('long', Sstate.q.t.length > 18);
+  qt.classList.toggle('xlong', Sstate.q.t.length > 34);
   const c = $('qcard'); c.classList.remove('in', 'good', 'bad'); void c.offsetWidth; c.classList.add('in');
   paintAnswer(false);
 }
