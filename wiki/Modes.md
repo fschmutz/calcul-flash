@@ -15,7 +15,12 @@ Copy is French by default; the English toggle translates UI and worded prompts (
 Numbers keep the French comma in both languages, because that is the only decimal separator the pad types.
 
 **The pad is the contract.** Every answer is a single number of at most six characters, digits, one comma
-and an optional minus. No item may ask for two fields (`2 h 20`), a unit, a word, or a click.
+and an optional minus. No item may ask for two fields (`2 h 20`), a unit, or a word.
+
+**Except when the options are already on the card.** An item may instead carry `choices`, an array of
+`{ v, label }` — one big button per option, shuffled, exactly one of them worth `a`. The round loop then hides
+the pad and the typing display, and one tap answers: no OK key, no confirm step. Today only *comparer* (item D
+below) does this. Everything else is typed.
 
 ## `deci`
 
@@ -36,9 +41,13 @@ The classic share also carries item H (× and ÷ by 0,1), at ~14 % of it from ti
 | A — chiffre des | `Dans 9090,69, le chiffre des dixièmes ?` | `In 9090,69, the tenths digit?` | one digit, `6` |
 | B — nombre de | `Dans 327,7, le nombre de dizaines ?` | `In 327,7, how many tens?` | the count, `32` |
 | C — nombre mystère | `Écris : 6 dizaines, 2 unités, 9 dixièmes` | `Write: 6 tens, 2 units, 9 tenths` | `62,9` |
-| D — comparer | `Le plus grand : 7,39 ou 7,425 ?` | `Which is larger: 7,39 or 7,425?` | `7,425` |
+| D — comparer | `Le plus grand : 7,39 ou 7,425 ?` | `Which is larger: 7,39 or 7,425?` | `7,425`, **tapped** on one of two buttons |
 | E — fraction décimale | `7,892 = ? / 1000` | same | the numerator, `7892` |
 | F — arrondi / troncature | `Arrondi au dixième par défaut de 2,417` | `Round 2,417 down to the tenth` | `2,4` |
+
+D is the one item you do not type. Both decimals are printed on the card, so typing the winner is copying, not
+comparing: the two numbers become two buttons instead, in random order, and the tap is the answer. A wrong tap
+costs the same seconds as a wrong typed answer.
 
 A and B are deliberately never conflated: A always answers a single digit, B always answers a count of at least two
 digits (the generator avoids the leading place, where the two coincide).

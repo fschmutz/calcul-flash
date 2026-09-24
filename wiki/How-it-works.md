@@ -10,6 +10,10 @@ Starting palier (level) follows age: 8–9 → 1, 10–11 → 2, 12 → 3, 13–
 
 Digits, comma, ±, backspace, OK. A complete answer auto-submits when its length matches the expected string. Keyboard works the same.
 
+## Tap choices
+
+When the question is a pick among options already on the card — today that is *comparer* in `deci` — the pad and the typing display give way to one big button per option, shuffled. One tap is the answer; there is no OK. Keys `1` and `2` reach the same buttons, and Tab + Enter / Space work because they are plain `<button>`s.
+
 ## Recap
 
 Parents see badges (mode, difficulty, age, palier, duration), accuracy by family, missed sums, and the slowest correct ones (> 4 s).

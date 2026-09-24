@@ -5,12 +5,12 @@ Static GitHub Pages from the **repo root** (not `docs/`). The app URL is `/`. Do
 ```
 index.html          cabinet screens, CSP
 css/                arcade UI (Bungee, Fredoka, DM Mono)
-js/app.js           round loop, pad, records, version check
+js/app.js           round loop, pad, tap choices, records, version check
 js/generate.js      seven families + mix
 js/fx.js            canvas fireworks
 js/i18n.js          EN / FR
 js/version.js       APP_VERSION
-sw.js               cache flash-v2; version.json is never precached
+sw.js               cache flash-v4; version.json is never precached
 wiki/               source of truth → GitHub wiki via scripts/wiki-sync.sh
 test/               node --test (no browser)
 ```
