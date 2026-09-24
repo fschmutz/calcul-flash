@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026.09.24.1
+
+Comparing two decimals is now a tap, not a typing exercise. `Le plus grand : 7,39 ou 7,425 ?` already prints
+both numbers, so the pad and the typing display step aside and the two decimals become two big buttons in
+random order; one tap answers, with the same fireworks, the same score and the same seconds lost on a miss.
+Generators may now attach `choices` — `{ v, label }` options, exactly one worth the answer — and the round
+loop wires them up once, so the next pick-one item needs no UI work. Everything else is still typed on the
+six-key pad, keyboard included. Keys `1` and `2` pick a choice, and the buttons are real buttons: Tab to
+them, Enter or Space to answer.
+
 ## 2026.09.23.2
 
 `deci` grows past place value: *arrondi / troncature* now also cut at the dixième and the centième, × and
