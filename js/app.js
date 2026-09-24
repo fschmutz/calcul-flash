@@ -329,7 +329,7 @@ document.addEventListener('keydown', (e) => {
   const list = choiceList();
   if (list) {
     /* Enter and Space belong to whichever choice has focus; 1…n are the shortcut. */
-    const n = +e.key;
+    const n = e.ctrlKey || e.metaKey || e.altKey ? NaN : +e.key;
     if (n >= 1 && n <= Math.min(9, list.length)) { e.preventDefault(); choose(n - 1); }
     return;
   }
