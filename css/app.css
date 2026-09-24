@@ -193,6 +193,19 @@ body::before{
 .answer.empty{color:var(--dim);font-size:15px;letter-spacing:.06em;font-family:'Fredoka',sans-serif}
 .answer.bad{border-color:var(--pink);color:var(--pink)}
 
+/* Multiple choice: one tap answers, so the keys are as big as the card above them. */
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:11px}
+.choice{
+  font-family:'DM Mono',monospace;font-size:clamp(26px,8vw,34px);font-weight:500;letter-spacing:1px;
+  color:var(--cream);background:linear-gradient(180deg,#4A2A85,#341C66);
+  border:2px solid rgba(255,255,255,.16);border-radius:16px;
+  min-height:96px;padding:18px 10px;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.42);
+  transition:transform .07s, box-shadow .07s;
+}
+.choice:active{transform:translateY(5px);box-shadow:0 0 0 rgba(0,0,0,.42)}
+.choice.picked{background:linear-gradient(180deg,#4BF0C2,var(--mint));color:#0A2E24;border-color:var(--mint)}
+.choice.missed{background:linear-gradient(180deg,#FF6BA6,var(--pink));color:#2B0A16;border-color:var(--pink)}
+
 .pad{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .key{
   font-family:'DM Mono',monospace;font-size:25px;color:var(--cream);
@@ -278,6 +291,7 @@ body::before{
   .q-text.long{font-size:34px}
   .q-text.xlong{font-size:27px}
   .answer{height:70px;font-size:38px}
+  .choice{font-size:44px;min-height:132px}
   .hud-val{font-size:32px}
   .chip{font-size:17px;padding:15px 13px}
   .ages .chip{font-size:20px;padding:17px 0}

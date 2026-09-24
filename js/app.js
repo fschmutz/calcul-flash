@@ -108,6 +108,7 @@ function applyI18n() {
   $('lblTime').textContent = T.time;
   $('lblScore').textContent = T.score;
   $('ans').textContent = T.typeAnswer;
+  $('choices').setAttribute('aria-label', T.pickAnswer);
   $('keyOk').textContent = T.ok;
   $('lblGood').textContent = T.justes;
   $('lblAcc').textContent = T.reussite;
@@ -172,7 +173,8 @@ let Sstate = {};
 function reset() {
   Sstate = {
     running: false, left: duration, score: 0, streak: 0, bestStreak: 0, good: 0, total: 0,
-    level: D().start, topLevel: D().start, q: null, typed: '', qStart: 0, log: [], recent: [], shownScore: 0
+    level: D().start, topLevel: D().start, q: null, typed: '', qStart: 0, log: [], recent: [], shownScore: 0,
+    locked: false
   };
 }
 
@@ -218,22 +220,60 @@ function drawQ() {
   return q;
 }
 function nextQ() {
-  Sstate.q = drawQ(); Sstate.typed = ''; Sstate.qStart = performance.now();
+  Sstate.q = drawQ(); Sstate.typed = ''; Sstate.qStart = performance.now(); Sstate.locked = false;
   const qt = $('qtext');
   qt.textContent = Sstate.q.t; $('qtag').textContent = Sstate.q.tag;
   qt.classList.toggle('long', Sstate.q.t.length > 18);
   qt.classList.toggle('xlong', Sstate.q.t.length > 34);
   const c = $('qcard'); c.classList.remove('in', 'good', 'bad'); void c.offsetWidth; c.classList.add('in');
-  paintAnswer(false);
+  paintChoices();
 }
+
+/** The options of a pick-one question, or null when the answer is typed on the pad. */
+function choiceList() {
+  const list = Sstate.q && Sstate.q.choices;
+  return Array.isArray(list) && list.length > 1 ? list : null;
+}
+/** A pick-one question swaps the pad and the typing display for one big button per option. */
+function paintChoices() {
+  const box = $('choices');
+  const list = choiceList();
+  box.replaceChildren();
+  box.classList.toggle('hide', !list);
+  $('pad').classList.toggle('hide', !!list);
+  $('ans').classList.toggle('hide', !!list);
+  if (!list) return paintAnswer(false);
+  list.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'choice'; b.dataset.i = String(i);
+    b.textContent = c.label;
+    b.setAttribute('aria-label', S().pickOne(c.label));
+    box.appendChild(b);
+  });
+}
+function choose(i) {
+  const list = choiceList();
+  if (!Sstate.running || Sstate.locked || !list || !list[i]) return;
+  Sstate.locked = true;
+  const c = list[i];
+  const btn = $('choices').children[i];
+  if (btn) btn.classList.add(Math.abs(c.v - Sstate.q.a) < 1e-9 ? 'picked' : 'missed');
+  resolve(c.v, c.label);
+}
+$('choices').addEventListener('click', (e) => {
+  const b = e.target.closest('.choice');
+  if (b) choose(+b.dataset.i);
+});
 
 function answerString() { return fr(Sstate.q.a); }
 function ready() {
   return Sstate.typed !== '' && Sstate.typed !== '-' && !Sstate.typed.endsWith(',');
 }
 function submit() {
-  if (!Sstate.running || !ready()) return;
-  const given = parseFloat(Sstate.typed.replace(',', '.'));
+  if (!Sstate.running || choiceList() || !ready()) return;
+  resolve(parseFloat(Sstate.typed.replace(',', '.')), Sstate.typed);
+}
+function resolve(given, givenLabel) {
   const ok = Math.abs(given - Sstate.q.a) < 1e-9;
   const secs = (performance.now() - Sstate.qStart) / 1000;
   Sstate.total++;
@@ -252,10 +292,12 @@ function submit() {
     setTimeout(nextQ, 150);
   } else {
     Sstate.streak = 0; Sstate.left = Math.max(0, Sstate.left - D().penalty);
-    Sstate.log.push({ t: Sstate.q.t, a: answerString(), ok: false, given: Sstate.typed, s: secs, fam: Sstate.q.fam, famKey: Sstate.q.famKey, tag: Sstate.q.tag });
+    Sstate.log.push({ t: Sstate.q.t, a: answerString(), ok: false, given: givenLabel, s: secs, fam: Sstate.q.fam, famKey: Sstate.q.famKey, tag: Sstate.q.tag });
     sBad();
     c.classList.remove('in'); void c.offsetWidth; c.classList.add('bad');
-    Sstate.typed = ''; paintAnswer(true); paintBumpers();
+    Sstate.typed = '';
+    if (!choiceList()) paintAnswer(true);
+    paintBumpers();
     if (Sstate.level > D().min && Sstate.total > 3 && Sstate.good / Sstate.total < 0.6) { Sstate.level--; paintLevel(false); }
     setTimeout(() => { if (Sstate.running) nextQ(); }, 420);
   }
@@ -264,7 +306,7 @@ function autoCheck() {
   if (ready() && Sstate.typed.length >= answerString().length) setTimeout(submit, 60);
 }
 function press(k) {
-  if (!Sstate.running) return;
+  if (!Sstate.running || choiceList()) return;
   if (k === 'ok') return submit();
   if (k === 'del') { Sstate.typed = Sstate.typed.slice(0, -1); return paintAnswer(false); }
   if (k === 'neg') {
@@ -284,6 +326,13 @@ $('pad').addEventListener('click', (e) => {
 });
 document.addEventListener('keydown', (e) => {
   if (!Sstate.running) return;
+  const list = choiceList();
+  if (list) {
+    /* Enter and Space belong to whichever choice has focus; 1…n are the shortcut. */
+    const n = +e.key;
+    if (n >= 1 && n <= Math.min(9, list.length)) { e.preventDefault(); choose(n - 1); }
+    return;
+  }
   if (e.key >= '0' && e.key <= '9') press(e.key);
   else if (e.key === ',' || e.key === '.') press(',');
   else if (e.key === '-') press('neg');
