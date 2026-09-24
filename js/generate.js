@@ -441,7 +441,15 @@ function gPvAssemble(tier, ctx) {
   return { t: C.assemble(clues), a: n.v, tag: C.assembleTag };
 }
 
-/** D — compare two decimals, often of different lengths. */
+/**
+ * D — compare two decimals, often of different lengths.
+ *
+ * The two decimals are already on screen, so the answer is a pick, not a typed number: the item
+ * carries `choices`, the multiple-choice contract the round loop reads. A question with `choices`
+ * is answered by tapping one of them; without it, the pad stays in charge. Each choice is
+ * `{ v, label }`, the label being the very digit string printed in the prompt, and exactly one
+ * choice has `v === a`, so scoring and the recap treat it like any other numeric answer.
+ */
 function gPvCompare(tier, ctx) {
   const rnd = ctx.rnd;
   const C = L(ctx.lang);
@@ -465,7 +473,12 @@ function gPvCompare(tier, ctx) {
     dec[dec.length - 1] = (dec[dec.length - 1] % 9) + 1;
     b = digitsToNumber(b.int, dec);
   }
-  return { t: C.largest(a.s, b.s), a: Math.max(a.v, b.v), tag: C.largestTag };
+  return {
+    t: C.largest(a.s, b.s),
+    a: Math.max(a.v, b.v),
+    tag: C.largestTag,
+    choices: shuffle([{ v: a.v, label: a.s }, { v: b.v, label: b.s }], rnd)
+  };
 }
 
 /** E — the numerator of the decimal fraction: 7,892 = ? / 1000. */
@@ -996,6 +1009,10 @@ const MIX_BAG = ['tables', 'tables', 'addsub', 'addsub', 'comp', 'deci', 'frac',
 /**
  * @param {number} level 1–6
  * @param {{mode?:string,diff?:string,age?:number,lang?:string,random?:()=>number}} [ctx]
+ * @returns {{t:string,a:number,tag:string,fam:string,famKey:string,
+ *            choices?:{v:number,label:string}[]}}
+ *   `choices` is present only when the question is a pick among options already on screen; the
+ *   labels are shuffled and exactly one carries `v === a`. Everything else is typed on the pad.
  */
 export function generateQuestion(level, ctx = {}) {
   const rnd = ctx.random || Math.random;

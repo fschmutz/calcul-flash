@@ -288,6 +288,52 @@ test('comparisons are strict and often use different decimal lengths', () => {
   assert.ok(unequalLength / qs.length > 0.4, 'not enough unequal-length pairs');
 });
 
+test('a comparison is a pick between the two decimals it prints', () => {
+  const qs = deciSample(4, 11, 'moyen', 'fr', 4000, 405).filter((q) => IS.compare(q.t));
+  assert.ok(qs.length > 200);
+  for (const q of qs) {
+    const m = q.t.match(/^Le plus grand : ([\d,]+) ou ([\d,]+) \?$/);
+    assert.ok(Array.isArray(q.choices), 'no choices: ' + q.t);
+    assert.equal(q.choices.length, 2, q.t);
+    /* The labels are the very strings on the card, so no float noise can leak into a button. */
+    assert.deepEqual(q.choices.map((c) => c.label).sort(), [m[1], m[2]].sort(), q.t);
+    for (const c of q.choices) assert.equal(c.v, num(c.label), q.t);
+    assert.equal(q.choices.filter((c) => c.v === q.a).length, 1, 'not exactly one correct: ' + q.t);
+  }
+});
+
+test('the larger decimal is not always the same button', () => {
+  const qs = [].concat(
+    deciSample(2, 10, 'moyen', 'fr', 3000, 406),
+    deciSample(6, 14, 'expert', 'en', 3000, 407)
+  ).filter((q) => IS.compare(q.t));
+  assert.ok(qs.length > 300);
+  const firstIsCorrect = qs.filter((q) => q.choices[0].v === q.a).length;
+  const share = firstIsCorrect / qs.length;
+  assert.ok(share > 0.35 && share < 0.65, 'choice order looks fixed: ' + share);
+  const firstIsPrinted = qs.filter((q) => q.t.indexOf(q.choices[0].label) < q.t.indexOf(q.choices[1].label));
+  assert.ok(firstIsPrinted.length < qs.length, 'buttons always follow the printed order');
+});
+
+test('typed questions carry no choices', () => {
+  let typed = 0;
+  for (const fam of FAMILIES) {
+    for (const level of LEVELS) {
+      for (const age of [8, 11, 14]) {
+        for (const lang of ['fr', 'en']) {
+          for (let i = 0; i < 12; i++) {
+            const q = generateQuestion(level, { mode: fam, age, diff: 'moyen', lang });
+            if (fam === 'deci' && IS.compare(q.t)) continue;
+            assert.equal(q.choices, undefined, 'unexpected choices on ' + q.t);
+            typed++;
+          }
+        }
+      }
+    }
+  }
+  assert.ok(typed > 2000);
+});
+
 test('decimal fraction numerators have no leading zero', () => {
   const qs = [].concat(
     deciSample(2, 10, 'moyen', 'fr', 2000, 1010),
